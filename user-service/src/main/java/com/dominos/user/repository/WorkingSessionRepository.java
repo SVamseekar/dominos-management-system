@@ -40,4 +40,25 @@ public interface WorkingSessionRepository extends MongoRepository<WorkingSession
     @Query(value = "{'employeeId': ?0, 'totalHours': {$ne: null}}", 
            sort = "{'date': -1}")
     List<WorkingSession> findRecentCompletedSessions(String employeeId);
+
+    // Add these methods to existing WorkingSessionRepository
+
+    @Query("{'employeeId': ?0}")
+    List<WorkingSession> findAllActiveSessionsByEmployeeId(String employeeId);
+
+    @Query("{'employeeId': ?0, 'loginTime': {$gte: ?1, $lt: ?2}, 'logoutTime': {$ne: null}}")
+    Optional<WorkingSession> findLastCompletedSession(String employeeId, LocalDate date);
+
+    @Query("{'employeeId': ?0, 'loginTime': {$lt: ?2}, 'logoutTime': {$gt: ?1}}")
+    List<WorkingSession> findConflictingSessions(String employeeId, LocalDateTime startTime, LocalDateTime endTime);
+
+    @Query("{'status': 'PENDING_APPROVAL'}")
+    List<WorkingSession> findSessionsPendingApproval();
+
+    @Query("{'storeId': ?0, 'status': 'PENDING_APPROVAL'}")
+    List<WorkingSession> findStorSessionsPendingApproval(String storeId);
+
+    @Query("{'employeeId': ?0, 'violations': {$exists: true, $ne: []}}")
+    List<WorkingSession> findSessionsWithViolations(String employeeId);
+    
 }

@@ -1,5 +1,6 @@
 package com.dominos.user.controller;
 
+import com.dominos.shared.model.Location; // ADD THIS LINE
 import com.dominos.user.dto.WorkingSessionResponse;
 import com.dominos.user.dto.WorkingHoursReport;
 import com.dominos.user.service.WorkingSessionService;
@@ -57,6 +58,78 @@ public class WorkingSessionController {
         return ResponseEntity.ok(mapToResponse(session));
     }
     
+    // Add these methods to existing WorkingSessionController
+
+    @PostMapping("/start-with-location")
+    @Operation(summary = "Start working session with location")
+    @PreAuthorize("hasRole('STAFF') or hasRole('DRIVER') or hasRole('MANAGER') or hasRole('ASSISTANT_MANAGER')")
+    public ResponseEntity<WorkingSessionResponse> startSessionWithLocation(
+            @RequestHeader("X-User-Id") String employeeId,
+            @RequestHeader("X-Store-Id") String storeId,
+            @RequestBody Map<String, Object> locationData) {
+        
+        Location clockInLocation = null;
+        if (locationData.containsKey("latitude") && locationData.containsKey("longitude")) {
+            clockInLocation = new Location(
+                (Double) locationData.get("latitude"),
+                (Double) locationData.get("longitude")
+            );
+        }
+        
+        var session = sessionService.startSessionWithLocation(employeeId, storeId, clockInLocation);
+        return ResponseEntity.ok(mapToResponse(session));
+    }
+
+    @PostMapping("/end-with-location")
+    @Operation(summary = "End working session with location")
+    @PreAuthorize("hasRole('STAFF') or hasRole('DRIVER') or hasRole('MANAGER') or hasRole('ASSISTANT_MANAGER')")
+    public ResponseEntity<WorkingSessionResponse> endSessionWithLocation(
+            @RequestHeader("X-User-Id") String employeeId,
+            @RequestBody Map<String, Object> locationData) {
+        
+        Location clockOutLocation = null;
+        if (locationData.containsKey("latitude") && locationData.containsKey("longitude")) {
+            clockOutLocation = new Location(
+                (Double) locationData.get("latitude"),
+                (Double) locationData.get("longitude")
+            );
+        }
+        
+        var session = sessionService.endSessionWithLocation(employeeId, clockOutLocation);
+        return ResponseEntity.ok(mapToResponse(session));
+    }
+
+    @GetMapping("/pending-approval")
+    @Operation(summary = "Get sessions pending approval")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ASSISTANT_MANAGER')")
+    public ResponseEntity<List<WorkingSessionResponse>> getSessionsPendingApproval(
+            @RequestParam(required = false) String storeId) {
+        // Implementation will be added to service
+        return ResponseEntity.ok(List.of());
+    }
+
+    @PostMapping("/{sessionId}/approve")
+    @Operation(summary = "Approve working session")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<Map<String, String>> approveSession(
+            @PathVariable String sessionId,
+            @RequestHeader("X-User-Id") String managerId) {
+        sessionService.approveSession(sessionId, managerId);
+        return ResponseEntity.ok(Map.of("message", "Session approved successfully"));
+    }
+
+    @PostMapping("/{sessionId}/reject")
+    @Operation(summary = "Reject working session")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<Map<String, String>> rejectSession(
+            @PathVariable String sessionId,
+            @RequestHeader("X-User-Id") String managerId,
+            @RequestBody Map<String, String> request) {
+        String reason = request.get("reason");
+        sessionService.rejectSession(sessionId, managerId, reason);
+        return ResponseEntity.ok(Map.of("message", "Session rejected"));
+    }
+
     @GetMapping("/current")
     @Operation(summary = "Get current working session")
     public ResponseEntity<WorkingSessionResponse> getCurrentSession(@RequestHeader("X-User-Id") String employeeId) {
