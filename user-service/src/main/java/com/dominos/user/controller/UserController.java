@@ -42,9 +42,9 @@ public class UserController {
     @PostMapping("/logout")
     @Operation(summary = "User logout")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<Void> logout(@RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<Map<String, String>> logout(@RequestHeader("X-User-Id") String userId) {
         userService.logout(userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
     
     @PostMapping("/refresh")
@@ -58,7 +58,7 @@ public class UserController {
     @GetMapping("/{userId}")
     @Operation(summary = "Get user by ID")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<UserResponse> getUser(@PathVariable String userId) {
+    public ResponseEntity<UserResponse> getUser(@PathVariable("userId") String userId) {
         UserResponse user = userService.getUserResponseById(userId);
         return ResponseEntity.ok(user);
     }
@@ -68,7 +68,7 @@ public class UserController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("#userId == authentication.name or hasRole('MANAGER')")
     public ResponseEntity<UserResponse> updateUser(
-            @PathVariable String userId,
+            @PathVariable("userId") String userId,
             @Valid @RequestBody UserCreateRequest request) {
         UserResponse user = userService.updateUser(userId, request);
         return ResponseEntity.ok(user);
@@ -78,16 +78,16 @@ public class UserController {
     @Operation(summary = "Deactivate user")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Void> deactivateUser(@PathVariable String userId) {
+    public ResponseEntity<Map<String, String>> deactivateUser(@PathVariable("userId") String userId) {
         userService.deactivateUser(userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("message", "User deactivated successfully"));
     }
     
     @GetMapping("/type/{type}")
     @Operation(summary = "Get users by type")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ASSISTANT_MANAGER')")
-    public ResponseEntity<List<UserResponse>> getUsersByType(@PathVariable UserType type) {
+    public ResponseEntity<List<UserResponse>> getUsersByType(@PathVariable("type") UserType type) {
         List<UserResponse> users = userService.getUsersByType(type);
         return ResponseEntity.ok(users);
     }
@@ -96,7 +96,7 @@ public class UserController {
     @Operation(summary = "Get store employees")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ASSISTANT_MANAGER')")
-    public ResponseEntity<List<UserResponse>> getStoreEmployees(@PathVariable String storeId) {
+    public ResponseEntity<List<UserResponse>> getStoreEmployees(@PathVariable("storeId") String storeId) {
         List<UserResponse> employees = userService.getStoreEmployees(storeId);
         return ResponseEntity.ok(employees);
     }
@@ -109,12 +109,27 @@ public class UserController {
         return ResponseEntity.ok(managers);
     }
     
+    // FIXED: Parameter binding issue
     @GetMapping("/{userId}/can-take-orders")
     @Operation(summary = "Check if user can take orders")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<Map<String, Boolean>> canTakeOrders(@PathVariable String userId) {
-        boolean canTakeOrders = userService.canUserTakeOrders(userId);
-        return ResponseEntity.ok(Map.of("canTakeOrders", canTakeOrders));
+    public ResponseEntity<Map<String, Object>> canTakeOrders(@PathVariable("userId") String userId) {
+        try {
+            boolean canTakeOrders = userService.canUserTakeOrders(userId);
+            User user = userService.getUserById(userId);
+            
+            return ResponseEntity.ok(Map.of(
+                "canTakeOrders", canTakeOrders,
+                "userType", user.getType().toString(),
+                "isEmployee", user.isEmployee(),
+                "isActive", user.isActive()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of(
+                "canTakeOrders", false,
+                "error", e.getMessage()
+            ));
+        }
     }
     
     @GetMapping("/profile")

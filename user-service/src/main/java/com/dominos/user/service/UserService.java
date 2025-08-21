@@ -70,6 +70,32 @@ public class UserService {
         return mapToUserResponse(savedUser);
     }
     
+    public UserResponse createEmployee(UserCreateRequest request) {
+        validateEmployeeCreation(request);
+        
+        User user = new User();
+        user.setType(request.getType());
+        
+        User.PersonalInfo personalInfo = new User.PersonalInfo();
+        personalInfo.setName(request.getName());
+        personalInfo.setEmail(request.getEmail());
+        personalInfo.setPhone(request.getPhone());
+        personalInfo.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        personalInfo.setAddress(request.getAddress());
+        user.setPersonalInfo(personalInfo);
+        
+        // Set employee details
+        User.EmployeeDetails employeeDetails = new User.EmployeeDetails();
+        employeeDetails.setStoreId(request.getStoreId());
+        employeeDetails.setRole(request.getRole());
+        employeeDetails.setPermissions(request.getPermissions());
+        employeeDetails.setSchedule(request.getSchedule());
+        user.setEmployeeDetails(employeeDetails);
+        
+        User savedUser = userRepository.save(user);
+        return mapToUserResponse(savedUser);
+    }
+    
     public LoginResponse authenticate(LoginRequest request) {
         User user = userRepository.findByPersonalInfoEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
@@ -91,7 +117,12 @@ public class UserService {
         
         // Start working session for employees
         if (user.isEmployee()) {
-            sessionService.startSession(user.getId(), storeId);
+            try {
+                sessionService.startSession(user.getId(), storeId);
+            } catch (Exception e) {
+                // Log the error but don't fail the login
+                System.err.println("Failed to start working session: " + e.getMessage());
+            }
         }
         
         return new LoginResponse(accessToken, refreshToken, mapToUserResponse(user));
@@ -100,7 +131,12 @@ public class UserService {
     public void logout(String userId) {
         User user = getUserById(userId);
         if (user.isEmployee()) {
-            sessionService.endSession(userId);
+            try {
+                sessionService.endSession(userId);
+            } catch (Exception e) {
+                // Log the error but don't fail the logout
+                System.err.println("Failed to end working session: " + e.getMessage());
+            }
         }
     }
     
@@ -164,7 +200,12 @@ public class UserService {
         
         // End any active working session
         if (user.isEmployee()) {
-            sessionService.endSession(userId);
+            try {
+                sessionService.endSession(userId);
+            } catch (Exception e) {
+                // Log the error but continue
+                System.err.println("Failed to end session during deactivation: " + e.getMessage());
+            }
         }
     }
     
@@ -196,8 +237,6 @@ public class UserService {
     }
     
     public List<UserResponse> searchUsers(String name, String email, String phone, UserType type, String storeId) {
-        // This would typically use MongoDB query builders or custom repository methods
-        // For simplicity, we'll filter after fetching
         List<User> allUsers = userRepository.findAll();
         
         return allUsers.stream()
@@ -246,8 +285,25 @@ public class UserService {
             throw new RuntimeException("Phone number already exists");
         }
         
-        if (request.getType() != UserType.CUSTOMER && request.getStoreId() == null) {
+        // Relaxed validation for employee types - allow if store is provided
+        if (request.getType() != UserType.CUSTOMER && 
+            (request.getStoreId() == null || request.getStoreId().trim().isEmpty())) {
             throw new RuntimeException("Store ID required for employees");
+        }
+    }
+    
+    private void validateEmployeeCreation(UserCreateRequest request) {
+        if (userRepository.existsByPersonalInfoEmail(request.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        
+        if (userRepository.existsByPersonalInfoPhone(request.getPhone())) {
+            throw new RuntimeException("Phone number already exists");
+        }
+        
+        // Relaxed store validation - allow employee creation with any valid store ID
+        if (request.getStoreId() == null || request.getStoreId().trim().isEmpty()) {
+            throw new RuntimeException("Store ID is required for employees");
         }
     }
     

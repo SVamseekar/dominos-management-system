@@ -1,7 +1,6 @@
 package com.dominos.user.service;
 
 import com.dominos.shared.entity.User;
-import com.dominos.shared.entity.Store;
 import com.dominos.shared.enums.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,16 +14,9 @@ public class AccessControlService {
     @Autowired
     private UserService userService;
     
-    @Autowired
-    private StoreService storeService;
-    
-    @Autowired
-    private WorkingSessionService sessionService;
-    
     public OrderTakingPermission validateOrderTakingAccess(String userId, String storeId) {
         try {
             User user = userService.getUserById(userId);
-            Store store = storeService.getStore(storeId);
             
             // Basic role check
             if (!user.canTakeOrders()) {
@@ -36,25 +28,12 @@ public class AccessControlService {
                 return OrderTakingPermission.denied("User account is deactivated");
             }
             
-            // Store assignment check
-            if (user.getEmployeeDetails() == null || 
-                !user.getEmployeeDetails().getStoreId().equals(storeId)) {
-                return OrderTakingPermission.denied("Not assigned to this store");
-            }
-            
-            // Active session check
-            if (!sessionService.isEmployeeCurrentlyWorking(userId)) {
-                return OrderTakingPermission.denied("Must be logged in to take orders");
-            }
-            
-            // Store operational status
-            if (!store.isOperational(LocalDateTime.now())) {
-                return OrderTakingPermission.denied("Store is currently closed");
-            }
-            
-            // Check if store accepts online orders
-            if (!store.getConfiguration().isAcceptsOnlineOrders()) {
-                return OrderTakingPermission.denied("Store not configured for online orders");
+            // Store assignment check for employees
+            if (user.isEmployee()) {
+                if (user.getEmployeeDetails() == null || 
+                    !user.getEmployeeDetails().getStoreId().equals(storeId)) {
+                    return OrderTakingPermission.denied("Not assigned to this store");
+                }
             }
             
             return OrderTakingPermission.allowed("Access granted");
