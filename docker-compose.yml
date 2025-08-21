@@ -14,6 +14,11 @@ services:
       - ./infrastructure/mongodb/init.js:/docker-entrypoint-initdb.d/init.js:ro
     networks:
       - dominos-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:7.2-alpine
@@ -26,6 +31,11 @@ services:
       - redis_data:/data
     networks:
       - dominos-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   mongodb_data:
