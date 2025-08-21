@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active: dev
+  
+  data:
+    mongodb:
+      uri: mongodb://admin:password123@localhost:27017/dominos?authSource=admin
+    redis:
+      host: localhost
+      port: 6379
+      password: redispassword123
+      timeout: 2000ms
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    root: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
