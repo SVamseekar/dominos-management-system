@@ -9,7 +9,7 @@ spring:
   
   data:
     mongodb:
-      uri: mongodb://localhost:27017/dominos
+      uri: mongodb://admin:password123@localhost:27017/dominos?authSource=admin
       auto-index-creation: true
     redis:
       host: localhost

@@ -1,4 +1,3 @@
-// File: shared-models/src/main/java/com/dominos/shared/entity/Shift.java
 package com.dominos.shared.entity;
 
 import org.springframework.data.annotation.Id;
@@ -114,7 +113,7 @@ public class Shift {
         return actual.toMinutes() > scheduled.toMinutes() + 15;
     }
     
-    // Getters and Setters
+    // Getters and Setters (include all standard getters/setters)
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     

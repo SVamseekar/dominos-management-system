@@ -15,7 +15,6 @@ public class TimeSlot {
         this.isOpen = true;
     }
     
-    // This constructor is needed for StoreOperatingConfig
     public TimeSlot(LocalTime startTime, LocalTime endTime, boolean isOpen) {
         this.startTime = startTime;
         this.endTime = endTime;

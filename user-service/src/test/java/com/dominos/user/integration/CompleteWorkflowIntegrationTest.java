@@ -107,7 +107,7 @@ class CompleteWorkflowIntegrationTest {
         // Step 6: Check store operational status
         mockMvc.perform(get("/api/stores/TST001/operational-status")
                 .header("Authorization", "Bearer " + accessToken))
-                .andExpected(status().isOk())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isOperational").value(true));
     }
     

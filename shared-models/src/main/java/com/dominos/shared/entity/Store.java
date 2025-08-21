@@ -6,7 +6,6 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.index.Indexed;
 import com.dominos.shared.model.Address;
 import com.dominos.shared.enums.StoreStatus;
-
 import com.dominos.shared.model.TimeSlot;
 import com.dominos.shared.model.SpecialHours;
 
@@ -88,7 +87,7 @@ public class Store {
         }
         
         if (operatingHours == null) {
-            return true; // 24/7 operation if no hours specified
+            return true;
         }
         
         return operatingHours.isOpenAt(dateTime);
@@ -108,8 +107,7 @@ public class Store {
     }
     
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        // Haversine formula for distance calculation
-        final int R = 6371; // Radius of the earth in km
+        final int R = 6371;
         
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
@@ -121,7 +119,7 @@ public class Store {
         return R * c;
     }
     
-    // Getters and Setters
+    // Getters and Setters (add all standard getters/setters)
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     
@@ -169,7 +167,6 @@ public class Store {
         public boolean isOpenAt(LocalDateTime dateTime) {
             DayOfWeek day = dateTime.getDayOfWeek();
             
-            // Check special hours first (holidays, maintenance, etc.)
             if (specialHours != null) {
                 for (SpecialHours special : specialHours) {
                     if (special.appliesTo(dateTime.toLocalDate())) {
@@ -178,7 +175,6 @@ public class Store {
                 }
             }
             
-            // Check regular weekly schedule
             if (weeklySchedule != null && weeklySchedule.containsKey(day)) {
                 TimeSlot timeSlot = weeklySchedule.get(day);
                 return timeSlot.isWithin(dateTime.toLocalTime());
@@ -187,7 +183,6 @@ public class Store {
             return false;
         }
         
-        // Getters and setters
         public Map<DayOfWeek, TimeSlot> getWeeklySchedule() { return weeklySchedule; }
         public void setWeeklySchedule(Map<DayOfWeek, TimeSlot> weeklySchedule) { this.weeklySchedule = weeklySchedule; }
         
@@ -204,7 +199,6 @@ public class Store {
         private int maxDeliveryTimeMinutes = 30;
         private double minimumOrderValueINR = 99.0;
         
-        // Getters and setters
         public double getDeliveryRadiusKm() { return deliveryRadiusKm; }
         public void setDeliveryRadiusKm(double deliveryRadiusKm) { this.deliveryRadiusKm = deliveryRadiusKm; }
         
