@@ -59,7 +59,7 @@ import {
 
 /**
  * POS Dashboard — dense cashier board for live shifts (F2e).
- * Orders | History | Reports; staff design-tokens + Cashier #2196F3.
+ * Orders | History | Reports; dark-premium tokens + warm orange accent.
  */
 const POSDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -423,7 +423,7 @@ const POSDashboard: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: `0 ${pos.space[4]}`,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
           flexShrink: 0,
           gap: pos.space[3],
           flexWrap: 'wrap',
@@ -434,7 +434,7 @@ const POSDashboard: React.FC = () => {
             style={{
               fontSize: pos.type.fontSize.xl,
               fontWeight: pos.type.fontWeight.extrabold,
-              color: pos.inverse,
+              color: pos.ink,
               letterSpacing: '-0.3px',
             }}
           >
@@ -445,7 +445,7 @@ const POSDashboard: React.FC = () => {
             style={{
               height: 28,
               width: 1,
-              backgroundColor: pos.headerBgAlt,
+              backgroundColor: 'rgba(255,255,255,0.12)',
             }}
           />
           <div
@@ -491,8 +491,8 @@ const POSDashboard: React.FC = () => {
                 fontSize: pos.type.fontSize.sm,
                 ...(activeTab === tab.key
                   ? {
-                      background: pos.role,
-                      color: pos.inverse,
+                      background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
+                      color: '#ffffff',
                       boxShadow: `0 4px 12px ${pos.roleShadow}`,
                     }
                   : {
@@ -570,7 +570,8 @@ const POSDashboard: React.FC = () => {
                 alignItems: 'center',
                 gap: pos.space[2],
                 padding: `${pos.space[2]} ${pos.space[3]}`,
-                backgroundColor: pos.headerBgAlt,
+                backgroundColor: pos.roleSoft,
+                border: `1px solid ${pos.roleBorder}`,
                 borderRadius: pos.radius.md,
                 minHeight: pos.touchMin,
               }}
@@ -588,7 +589,7 @@ const POSDashboard: React.FC = () => {
                 style={{
                   fontSize: pos.type.fontSize.lg,
                   fontWeight: pos.type.fontWeight.extrabold,
-                  color: pos.success,
+                  color: pos.role,
                 }}
               >
                 {fmt(orderTotal)}
@@ -604,7 +605,7 @@ const POSDashboard: React.FC = () => {
                 style={{
                   ...posTouchBtnBase,
                   background: `linear-gradient(135deg, ${pos.success} 0%, ${pos.successDark} 100%)`,
-                  color: pos.inverse,
+                  color: '#ffffff',
                   boxShadow: `0 4px 12px ${pos.success}55`,
                 }}
               >
@@ -620,7 +621,7 @@ const POSDashboard: React.FC = () => {
                     activeSessions.length === 0
                       ? pos.faint
                       : `linear-gradient(135deg, ${pos.error} 0%, ${pos.errorDark} 100%)`,
-                  color: pos.inverse,
+                  color: '#ffffff',
                   opacity: activeSessions.length === 0 ? 0.5 : 1,
                   cursor: activeSessions.length === 0 ? 'not-allowed' : 'pointer',
                 }}
@@ -750,7 +751,7 @@ const POSDashboard: React.FC = () => {
                     style={{
                       ...posTouchBtnBase,
                       background: pos.role,
-                      color: pos.inverse,
+                      color: '#ffffff',
                     }}
                   >
                     Retry

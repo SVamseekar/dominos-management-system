@@ -1,50 +1,55 @@
 /**
- * POS / cashier tokens — staff/ops surface only.
- * Built on neumorphic design-tokens + Cashier role accent (#2196F3).
+ * POS dark-premium tokens — staff landscape surface.
+ * Accent = warm orange (Pinterest craft ref). Cashier blue #2196F3 retired for POS chrome.
  * Do not import manager-tokens or customer --dp-* here.
  */
 import type { CSSProperties } from 'react';
-import { colors, spacing, typography, borderRadius, shadows } from '../../styles/design-tokens';
+import { spacing, typography, borderRadius } from '../../styles/design-tokens';
 
-/** Hard rule: Cashier role color — never change */
-export const CASHIER_ROLE = '#2196F3';
+/** POS accent — warm orange (was cashier blue #2196F3) */
+export const CASHIER_ROLE = '#f97316';
 
 export const pos = {
   role: CASHIER_ROLE,
-  roleSoft: 'rgba(33, 150, 243, 0.12)',
-  roleBorder: 'rgba(33, 150, 243, 0.45)',
-  roleShadow: 'rgba(33, 150, 243, 0.35)',
-  roleDark: '#1565C0',
+  roleSoft: 'rgba(249, 115, 22, 0.15)',
+  roleBorder: 'rgba(249, 115, 22, 0.45)',
+  roleShadow: 'rgba(249, 115, 22, 0.35)',
+  roleDark: '#ea580c',
 
-  surface: colors.surface.primary,
-  surfaceAlt: colors.surface.secondary,
-  surfaceElevated: colors.surface.elevated,
-  surfaceBg: colors.surface.background,
-  border: colors.surface.border,
-  ink: colors.text.primary,
-  muted: colors.text.secondary,
-  faint: colors.text.tertiary,
-  inverse: colors.text.inverse,
+  /** Aliases for design-spec accent naming */
+  accent: CASHIER_ROLE,
+  accentSoft: 'rgba(249, 115, 22, 0.15)',
+  accentDark: '#ea580c',
 
-  brand: colors.brand.primary,
-  brandSecondary: colors.brand.secondary,
+  surface: '#1a1c24',
+  surfaceAlt: '#14161c',
+  surfaceElevated: '#22252f',
+  surfaceBg: '#0c0d10',
+  border: 'rgba(255,255,255,0.08)',
+  ink: '#f5f5f7',
+  muted: '#9ca3af',
+  faint: '#6b7280',
+  /** Text / icon on solid accent & success buttons */
+  inverse: '#ffffff',
 
-  success: colors.semantic.success,
-  successDark: colors.semantic.successDark,
-  successSoft: 'rgba(16, 185, 129, 0.12)',
-  warning: colors.semantic.warning,
-  warningDark: colors.semantic.warningDark,
-  warningSoft: 'rgba(245, 158, 11, 0.15)',
-  error: colors.semantic.error,
-  errorDark: colors.semantic.errorDark,
-  errorSoft: 'rgba(239, 68, 68, 0.12)',
-  info: colors.semantic.info,
-  infoDark: colors.semantic.infoDark,
-  infoSoft: 'rgba(59, 130, 246, 0.12)',
+  brand: '#e53e3e',
+  brandSecondary: CASHIER_ROLE,
 
-  /** Dark header chrome for cashier floor readability */
-  headerBg: '#1a2332',
-  headerBgAlt: '#243044',
+  success: '#10b981',
+  successDark: '#34d399',
+  successSoft: 'rgba(16, 185, 129, 0.18)',
+  warning: '#f59e0b',
+  warningDark: '#fbbf24',
+  warningSoft: 'rgba(245, 158, 11, 0.18)',
+  error: '#ef4444',
+  errorDark: '#f87171',
+  errorSoft: 'rgba(239, 68, 68, 0.18)',
+  info: '#60a5fa',
+  infoDark: '#93c5fd',
+  infoSoft: 'rgba(96, 165, 250, 0.15)',
+
+  headerBg: '#0a0b0e',
+  headerBgAlt: '#16181f',
   headerMuted: '#94a3b8',
 
   font: typography.fontFamily.primary,
@@ -62,7 +67,15 @@ export const pos = {
   },
 
   space: spacing,
-  shadow: shadows,
+  shadow: {
+    raised: {
+      sm: '0 4px 16px rgba(0,0,0,0.35)',
+      md: '0 8px 28px rgba(0,0,0,0.45)',
+      lg: '0 16px 48px rgba(0,0,0,0.55)',
+    },
+    soft: '0 2px 8px rgba(0,0,0,0.25)',
+    inset: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+  },
   type: typography,
 } as const;
 
@@ -76,7 +89,7 @@ export const posPanelShell: CSSProperties = {
   borderRadius: pos.radius.lg,
   backgroundColor: pos.surface,
   boxShadow: pos.shadow.raised.sm,
-  border: `2px solid ${pos.border}`,
+  border: `1px solid ${pos.border}`,
   boxSizing: 'border-box',
   minWidth: 0,
 };
@@ -97,4 +110,25 @@ export const posTouchBtnBase: CSSProperties = {
   gap: 8,
   padding: '12px 16px',
   transition: 'transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease',
+};
+
+export const posTouchBtnPrimary: CSSProperties = {
+  ...posTouchBtnBase,
+  background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
+  color: '#ffffff',
+  boxShadow: `0 4px 14px ${pos.roleShadow}`,
+};
+
+export const posTouchBtnGhost: CSSProperties = {
+  ...posTouchBtnBase,
+  background: pos.surfaceElevated,
+  color: pos.ink,
+  border: `1px solid ${pos.border}`,
+};
+
+export const posTouchBtnDanger: CSSProperties = {
+  ...posTouchBtnBase,
+  background: pos.errorSoft,
+  color: pos.errorDark,
+  border: `1px solid ${pos.error}`,
 };

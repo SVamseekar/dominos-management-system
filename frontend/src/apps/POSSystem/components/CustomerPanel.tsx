@@ -13,8 +13,6 @@ import {
 } from '../../../store/slices/cartSlice';
 import { formatMajorAmount } from '../../../utils/currency';
 import { computePreCheckoutTotals, formatTaxDisplay } from '../../../utils/orderTax';
-import Card from '../../../components/ui/neumorphic/Card';
-import { colors, shadows, spacing, typography } from '../../../styles/design-tokens';
 import { useGeocoding, buildAddressString } from '../../../hooks/useGeocoding';
 import { PINAuthModal } from './PINAuthModal';
 import PersonIcon from '@mui/icons-material/Person';
@@ -426,7 +424,7 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
           email: customer?.email || '',
         },
         theme: {
-          color: colors.brand.primary,
+          color: pos.role,
         },
         modal: {
           ondismiss: () => {
@@ -516,20 +514,20 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
         }}
       >
         {/* Customer Information */}
-        <Card
-          elevation="sm"
-          padding="lg"
-          style={{
-            marginBottom: spacing[4],
-            backgroundColor: colors.surface.secondary,
-            border: `1px solid ${colors.surface.border}`
+        <div style={{
+            marginBottom: pos.space[4],
+            padding: pos.space[4],
+            borderRadius: pos.radius.lg,
+            backgroundColor: pos.surface,
+            border: `1px solid ${pos.border}`,
+            boxShadow: pos.shadow.raised.sm,
           }}
         >
           <p style={{
-            margin: `0 0 ${spacing[4]} 0`,
-            fontSize: typography.fontSize.sm,
-            fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary
+            margin: `0 0 ${pos.space[4]} 0`,
+            fontSize: pos.type.fontSize.sm,
+            fontWeight: pos.type.fontWeight.bold,
+            color: pos.ink
           }}>
             <AssignmentIcon style={{ fontSize: '16px', marginRight: '6px', verticalAlign: 'middle' }} />
             Customer Information
@@ -542,25 +540,27 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
             onChange={(e) => setCustomerName(e.target.value)}
             style={{
               width: '100%',
-              padding: spacing[3],
-              marginBottom: spacing[3],
-              border: `2px solid ${colors.surface.border}`,
+              minHeight: pos.touchMin,
+              padding: pos.space[3],
+              marginBottom: pos.space[3],
+              border: `2px solid ${pos.border}`,
               borderRadius: '10px',
               outline: 'none',
-              backgroundColor: colors.surface.primary,
-              fontSize: typography.fontSize.sm,
-              color: colors.text.primary,
-              fontFamily: typography.fontFamily.primary,
-              boxShadow: shadows.inset.sm,
+              backgroundColor: pos.surfaceElevated,
+              boxSizing: 'border-box',
+              fontSize: pos.type.fontSize.sm,
+              color: pos.ink,
+              fontFamily: pos.font,
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
               transition: 'all 0.2s ease'
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = colors.brand.primary;
-              e.currentTarget.style.boxShadow = `0 0 0 3px ${colors.brand.primary}22`;
+              e.currentTarget.style.borderColor = pos.role;
+              e.currentTarget.style.boxShadow = `0 0 0 3px ${pos.roleSoft}`;
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = colors.surface.border;
-              e.currentTarget.style.boxShadow = shadows.inset.sm;
+              e.currentTarget.style.borderColor = pos.border;
+              e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
             }}
           />
 
@@ -571,34 +571,34 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
             onChange={(e) => handlePhoneChange(e.target.value)}
             style={{
               width: '100%',
-              padding: spacing[3],
-              marginBottom: phoneError ? spacing[1] : spacing[3],
-              border: `2px solid ${phoneError ? colors.semantic.error : colors.surface.border}`,
+              padding: pos.space[3],
+              marginBottom: phoneError ? pos.space[1] : pos.space[3],
+              border: `2px solid ${phoneError ? pos.error : pos.border}`,
               borderRadius: '10px',
               outline: 'none',
-              backgroundColor: colors.surface.primary,
-              fontSize: typography.fontSize.sm,
-              color: colors.text.primary,
-              fontFamily: typography.fontFamily.primary,
-              boxShadow: shadows.inset.sm,
+              backgroundColor: pos.surfaceElevated,
+              fontSize: pos.type.fontSize.sm,
+              color: pos.ink,
+              fontFamily: pos.font,
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
               transition: 'all 0.2s ease'
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = phoneError ? colors.semantic.error : colors.brand.primary;
+              e.currentTarget.style.borderColor = phoneError ? pos.error : pos.role;
               e.currentTarget.style.boxShadow = phoneError
-                ? `0 0 0 3px ${colors.semantic.error}22`
-                : `0 0 0 3px ${colors.brand.primary}22`;
+                ? `0 0 0 3px ${pos.error}22`
+                : `0 0 0 3px ${pos.roleSoft}`;
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = phoneError ? colors.semantic.error : colors.surface.border;
-              e.currentTarget.style.boxShadow = shadows.inset.sm;
+              e.currentTarget.style.borderColor = phoneError ? pos.error : pos.border;
+              e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
             }}
           />
           {phoneError && (
             <p style={{
-              margin: `0 0 ${spacing[3]} 0`,
-              fontSize: typography.fontSize.xs,
-              color: colors.semantic.error
+              margin: `0 0 ${pos.space[3]} 0`,
+              fontSize: pos.type.fontSize.xs,
+              color: pos.error
             }}>
               <WarningAmberIcon style={{ fontSize: '12px', marginRight: '4px', verticalAlign: 'middle' }} />{phoneError}
             </p>
@@ -615,34 +615,34 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
             }}
             style={{
                   width: '100%',
-                  padding: spacing[3],
-                  marginBottom: emailError ? spacing[1] : spacing[3],
-                  border: `2px solid ${emailError ? colors.semantic.error : colors.surface.border}`,
+                  padding: pos.space[3],
+                  marginBottom: emailError ? pos.space[1] : pos.space[3],
+                  border: `2px solid ${emailError ? pos.error : pos.border}`,
                   borderRadius: '10px',
                   outline: 'none',
-                  backgroundColor: colors.surface.primary,
-                  fontSize: typography.fontSize.sm,
-                  color: colors.text.primary,
-                  fontFamily: typography.fontFamily.primary,
-                  boxShadow: shadows.inset.sm,
+                  backgroundColor: pos.surfaceElevated,
+                  fontSize: pos.type.fontSize.sm,
+                  color: pos.ink,
+                  fontFamily: pos.font,
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
                   transition: 'all 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = emailError ? colors.semantic.error : colors.brand.primary;
+                  e.currentTarget.style.borderColor = emailError ? pos.error : pos.role;
                   e.currentTarget.style.boxShadow = emailError
-                    ? `0 0 0 3px ${colors.semantic.error}22`
-                    : `0 0 0 3px ${colors.brand.primary}22`;
+                    ? `0 0 0 3px ${pos.error}22`
+                    : `0 0 0 3px ${pos.roleSoft}`;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = emailError ? colors.semantic.error : colors.surface.border;
-                  e.currentTarget.style.boxShadow = shadows.inset.sm;
+                  e.currentTarget.style.borderColor = emailError ? pos.error : pos.border;
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
                 }}
               />
           {emailError && (
             <p style={{
-              margin: `0 0 ${spacing[3]} 0`,
-              fontSize: typography.fontSize.xs,
-              color: colors.semantic.error
+              margin: `0 0 ${pos.space[3]} 0`,
+              fontSize: pos.type.fontSize.xs,
+              color: pos.error
             }}>
               <WarningAmberIcon style={{ fontSize: '12px', marginRight: '4px', verticalAlign: 'middle' }} />{emailError}
             </p>
@@ -661,31 +661,31 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
                 }}
                 style={{
                   width: '100%',
-                  padding: spacing[3],
-                  marginBottom: spacing[3],
-                  border: `2px solid ${addressError ? colors.semantic.error : colors.surface.border}`,
+                  padding: pos.space[3],
+                  marginBottom: pos.space[3],
+                  border: `2px solid ${addressError ? pos.error : pos.border}`,
                   borderRadius: '10px',
                   outline: 'none',
-                  backgroundColor: colors.surface.primary,
-                  fontSize: typography.fontSize.sm,
-                  color: colors.text.primary,
-                  fontFamily: typography.fontFamily.primary,
-                  boxShadow: shadows.inset.sm,
+                  backgroundColor: pos.surfaceElevated,
+                  fontSize: pos.type.fontSize.sm,
+                  color: pos.ink,
+                  fontFamily: pos.font,
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
                   transition: 'all 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = addressError ? colors.semantic.error : colors.brand.primary;
+                  e.currentTarget.style.borderColor = addressError ? pos.error : pos.role;
                   e.currentTarget.style.boxShadow = addressError
-                    ? `0 0 0 3px ${colors.semantic.error}22`
-                    : `0 0 0 3px ${colors.brand.primary}22`;
+                    ? `0 0 0 3px ${pos.error}22`
+                    : `0 0 0 3px ${pos.roleSoft}`;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = addressError ? colors.semantic.error : colors.surface.border;
-                  e.currentTarget.style.boxShadow = shadows.inset.sm;
+                  e.currentTarget.style.borderColor = addressError ? pos.error : pos.border;
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
                 }}
               />
 
-              <div style={{ display: 'flex', gap: spacing[3], marginBottom: spacing[3] }}>
+              <div style={{ display: 'flex', gap: pos.space[3], marginBottom: pos.space[3] }}>
                 <input
                   type="text"
                   placeholder="City (required)"
@@ -696,26 +696,26 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
                   }}
                   style={{
                     flex: 1,
-                    padding: spacing[3],
-                    border: `2px solid ${addressError ? colors.semantic.error : colors.surface.border}`,
+                    padding: pos.space[3],
+                    border: `2px solid ${addressError ? pos.error : pos.border}`,
                     borderRadius: '10px',
                     outline: 'none',
-                    backgroundColor: colors.surface.primary,
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.primary,
-                    fontFamily: typography.fontFamily.primary,
-                    boxShadow: shadows.inset.sm,
+                    backgroundColor: pos.surfaceElevated,
+                    fontSize: pos.type.fontSize.sm,
+                    color: pos.ink,
+                    fontFamily: pos.font,
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
                     transition: 'all 0.2s ease'
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = addressError ? colors.semantic.error : colors.brand.primary;
+                    e.currentTarget.style.borderColor = addressError ? pos.error : pos.role;
                     e.currentTarget.style.boxShadow = addressError
-                      ? `0 0 0 3px ${colors.semantic.error}22`
-                      : `0 0 0 3px ${colors.brand.primary}22`;
+                      ? `0 0 0 3px ${pos.error}22`
+                      : `0 0 0 3px ${pos.roleSoft}`;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = addressError ? colors.semantic.error : colors.surface.border;
-                    e.currentTarget.style.boxShadow = shadows.inset.sm;
+                    e.currentTarget.style.borderColor = addressError ? pos.error : pos.border;
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
                   }}
                 />
 
@@ -730,26 +730,26 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
                   maxLength={6}
                   style={{
                     width: '140px',
-                    padding: spacing[3],
-                    border: `2px solid ${addressError ? colors.semantic.error : colors.surface.border}`,
+                    padding: pos.space[3],
+                    border: `2px solid ${addressError ? pos.error : pos.border}`,
                     borderRadius: '10px',
                     outline: 'none',
-                    backgroundColor: colors.surface.primary,
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.primary,
-                    fontFamily: typography.fontFamily.primary,
-                    boxShadow: shadows.inset.sm,
+                    backgroundColor: pos.surfaceElevated,
+                    fontSize: pos.type.fontSize.sm,
+                    color: pos.ink,
+                    fontFamily: pos.font,
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
                     transition: 'all 0.2s ease'
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = addressError ? colors.semantic.error : colors.brand.primary;
+                    e.currentTarget.style.borderColor = addressError ? pos.error : pos.role;
                     e.currentTarget.style.boxShadow = addressError
-                      ? `0 0 0 3px ${colors.semantic.error}22`
-                      : `0 0 0 3px ${colors.brand.primary}22`;
+                      ? `0 0 0 3px ${pos.error}22`
+                      : `0 0 0 3px ${pos.roleSoft}`;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = addressError ? colors.semantic.error : colors.surface.border;
-                    e.currentTarget.style.boxShadow = shadows.inset.sm;
+                    e.currentTarget.style.borderColor = addressError ? pos.error : pos.border;
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
                     // Trigger geocoding when user leaves pincode field
                     handleAddressGeocode();
                   }}
@@ -759,23 +759,23 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
               {/* Geocoding status indicator */}
               {orderType === 'DELIVERY' && (deliveryCity || deliveryPincode) && (
                 <div style={{
-                  marginBottom: spacing[3],
-                  padding: spacing[2],
+                  marginBottom: pos.space[3],
+                  padding: pos.space[2],
                   borderRadius: '8px',
-                  fontSize: typography.fontSize.xs,
+                  fontSize: pos.type.fontSize.xs,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: spacing[2],
+                  gap: pos.space[2],
                   backgroundColor: geocodingStatus === 'success'
-                    ? `${colors.semantic.success}15`
+                    ? pos.successSoft
                     : geocodingStatus === 'error'
-                    ? `${colors.semantic.error}15`
-                    : `${colors.semantic.info}15`,
+                    ? pos.errorSoft
+                    : pos.infoSoft,
                   color: geocodingStatus === 'success'
-                    ? colors.semantic.success
+                    ? pos.success
                     : geocodingStatus === 'error'
-                    ? colors.semantic.error
-                    : colors.semantic.info
+                    ? pos.error
+                    : pos.info
                 }}>
                   {geocoding && <span><SyncIcon style={{ fontSize: '14px', marginRight: '4px', verticalAlign: 'middle' }} />Finding location...</span>}
                   {!geocoding && geocodingStatus === 'success' && deliveryLatitude && (
@@ -799,57 +799,57 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
                 rows={2}
                 style={{
                   width: '100%',
-                  padding: spacing[3],
-                  marginBottom: addressError ? spacing[1] : 0,
-                  border: `2px solid ${colors.surface.border}`,
+                  padding: pos.space[3],
+                  marginBottom: addressError ? pos.space[1] : 0,
+                  border: `2px solid ${pos.border}`,
                   borderRadius: '10px',
                   outline: 'none',
-                  backgroundColor: colors.surface.primary,
-                  fontSize: typography.fontSize.sm,
-                  color: colors.text.primary,
-                  fontFamily: typography.fontFamily.primary,
-                  boxShadow: shadows.inset.sm,
+                  backgroundColor: pos.surfaceElevated,
+                  fontSize: pos.type.fontSize.sm,
+                  color: pos.ink,
+                  fontFamily: pos.font,
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
                   resize: 'vertical',
                   transition: 'all 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = colors.brand.primary;
-                  e.currentTarget.style.boxShadow = `0 0 0 3px ${colors.brand.primary}22`;
+                  e.currentTarget.style.borderColor = pos.role;
+                  e.currentTarget.style.boxShadow = `0 0 0 3px ${pos.roleSoft}`;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = colors.surface.border;
-                  e.currentTarget.style.boxShadow = shadows.inset.sm;
+                  e.currentTarget.style.borderColor = pos.border;
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
                 }}
               />
 
               {addressError && (
                 <p style={{
                   margin: 0,
-                  fontSize: typography.fontSize.xs,
-                  color: colors.semantic.error
+                  fontSize: pos.type.fontSize.xs,
+                  color: pos.error
                 }}>
                   <WarningAmberIcon style={{ fontSize: '12px', marginRight: '4px', verticalAlign: 'middle' }} />{addressError}
                 </p>
               )}
             </>
           )}
-        </Card>
+        </div>
 
         {/* Order Source — Global-6 */}
-        <Card
-          elevation="sm"
-          padding="lg"
-          style={{
-            marginBottom: spacing[4],
-            backgroundColor: colors.surface.secondary,
-            border: `1px solid ${colors.surface.border}`
+        <div style={{
+            marginBottom: pos.space[4],
+            padding: pos.space[4],
+            borderRadius: pos.radius.lg,
+            backgroundColor: pos.surface,
+            border: `1px solid ${pos.border}`,
+            boxShadow: pos.shadow.raised.sm,
           }}
         >
           <p style={{
-            margin: `0 0 ${spacing[3]} 0`,
-            fontSize: typography.fontSize.sm,
-            fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary
+            margin: `0 0 ${pos.space[3]} 0`,
+            fontSize: pos.type.fontSize.sm,
+            fontWeight: pos.type.fontWeight.bold,
+            color: pos.ink
           }}>
             Order Source
           </p>
@@ -862,14 +862,14 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
             }}
             style={{
               width: '100%',
-              padding: `${spacing[2]} ${spacing[3]}`,
+              padding: `${pos.space[2]} ${pos.space[3]}`,
               borderRadius: '10px',
-              border: `2px solid ${colors.surface.border}`,
-              background: colors.surface.primary,
-              fontFamily: typography.fontFamily.primary,
-              fontSize: typography.fontSize.sm,
-              color: colors.text.primary,
-              marginBottom: spacing[3],
+              border: `2px solid ${pos.border}`,
+              background: pos.surfaceElevated,
+              fontFamily: pos.font,
+              fontSize: pos.type.fontSize.sm,
+              color: pos.ink,
+              marginBottom: pos.space[3],
             }}
           >
             <option value="MASOVA">MaSoVa (Direct)</option>
@@ -886,25 +886,25 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
               placeholder="Aggregator Order ID (optional)"
               style={{
                 width: '100%',
-                padding: `${spacing[2]} ${spacing[3]}`,
+                padding: `${pos.space[2]} ${pos.space[3]}`,
                 borderRadius: '10px',
-                border: `2px solid ${colors.surface.border}`,
-                background: colors.surface.primary,
-                fontFamily: typography.fontFamily.primary,
-                fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                border: `2px solid ${pos.border}`,
+                background: pos.surfaceElevated,
+                fontFamily: pos.font,
+                fontSize: pos.type.fontSize.sm,
+                color: pos.ink,
                 boxSizing: 'border-box',
               }}
             />
           )}
-        </Card>
+        </div>
 
         {/* Compact summary (detail totals also on cart column) */}
         {items.length > 0 && (
           <div
             style={{
-              marginBottom: spacing[3],
-              padding: spacing[3],
+              marginBottom: pos.space[3],
+              padding: pos.space[3],
               borderRadius: pos.radius.md,
               background: pos.successSoft,
               border: `1px solid ${pos.success}`,
@@ -1035,12 +1035,13 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
                     letterSpacing: '0.02em',
                     ...(active
                       ? {
-                          background: pos.role,
-                          color: pos.inverse,
+                          background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
+                          color: '#ffffff',
                           boxShadow: `0 4px 14px ${pos.roleShadow}`,
+                          border: `2px solid ${pos.role}`,
                         }
                       : {
-                          background: pos.surfaceAlt,
+                          background: pos.surfaceElevated,
                           color: pos.muted,
                           border: `2px solid ${pos.border}`,
                         }),
@@ -1079,19 +1080,19 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
             letterSpacing: '0.02em',
             border: 'none',
             cursor: canSubmit ? 'pointer' : 'not-allowed',
-            color: canSubmit ? pos.inverse : pos.faint,
+            color: canSubmit ? '#ffffff' : pos.faint,
             background: canSubmit
-              ? `linear-gradient(135deg, ${pos.success} 0%, ${pos.successDark} 100%)`
-              : pos.surfaceAlt,
-            boxShadow: canSubmit ? `0 8px 20px rgba(16, 185, 129, 0.35)` : 'none',
+              ? `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`
+              : pos.surfaceElevated,
+            boxShadow: canSubmit ? `0 8px 20px ${pos.roleShadow}` : 'none',
             opacity: canSubmit ? 1 : 0.7,
           }}
         >
           {isSubmitting
             ? 'Processing…'
             : items.length === 0
-              ? 'Add items to charge'
-              : `Charge ${fmt(total)} · ${paymentMethod}`}
+              ? 'Add items to place order'
+              : `Place order ${fmt(total)} · ${paymentMethod}`}
         </button>
         <p
           style={{

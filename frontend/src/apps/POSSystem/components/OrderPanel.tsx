@@ -117,7 +117,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                   height: 24,
                   borderRadius: pos.radius.full,
                   background: pos.role,
-                  color: pos.inverse,
+                  color: '#ffffff',
                   fontSize: 12,
                   fontWeight: 800,
                   display: 'inline-flex',
@@ -179,8 +179,8 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                   borderRadius: pos.radius.sm,
                   ...(active
                     ? {
-                        background: pos.role,
-                        color: pos.inverse,
+                        background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
+                        color: '#ffffff',
                         boxShadow: `0 4px 10px ${pos.roleShadow}`,
                       }
                     : {
@@ -397,7 +397,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
             borderTop: `2px solid ${pos.border}`,
             background: pos.surface,
             flexShrink: 0,
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
+            boxShadow: '0 -8px 24px rgba(0,0,0,0.35)',
           }}
         >
           {orderAllergens.length > 0 && (
@@ -468,7 +468,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <span style={{ fontSize: 14, fontWeight: 800, color: pos.ink }}>{t('cart.total')}</span>
-            <span style={{ fontSize: 22, fontWeight: 800, color: pos.roleDark }}>{fmt(total)}</span>
+            <span style={{ fontSize: 22, fontWeight: 800, color: pos.role }}>{fmt(total)}</span>
           </div>
           <div
             style={{

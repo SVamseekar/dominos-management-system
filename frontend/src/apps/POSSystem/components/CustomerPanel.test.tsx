@@ -278,7 +278,7 @@ describe('CustomerPanel', () => {
         useMemoryRouter: true,
       });
 
-      const button = screen.getByRole('button', { name: /Charge/i });
+      const button = screen.getByRole('button', { name: /Place order/i });
       expect(button).toBeInTheDocument();
     });
 
@@ -287,7 +287,7 @@ describe('CustomerPanel', () => {
         useMemoryRouter: true,
       });
 
-      const button = screen.getByRole('button', { name: /Charge/i });
+      const button = screen.getByRole('button', { name: /Place order/i });
       expect(button).toBeDisabled();
     });
 
@@ -296,7 +296,7 @@ describe('CustomerPanel', () => {
         useMemoryRouter: true,
       });
 
-      const button = screen.getByRole('button', { name: /Charge/i });
+      const button = screen.getByRole('button', { name: /Place order/i });
       expect(button).not.toBeDisabled();
     });
 
@@ -307,7 +307,7 @@ describe('CustomerPanel', () => {
         useMemoryRouter: true,
       });
 
-      await user.click(screen.getByRole('button', { name: /Charge/i }));
+      await user.click(screen.getByRole('button', { name: /Place order/i }));
       expect(screen.getByTestId('pin-auth-modal')).toBeInTheDocument();
     });
   });

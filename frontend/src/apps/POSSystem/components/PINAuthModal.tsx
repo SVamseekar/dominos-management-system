@@ -2,17 +2,24 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useValidatePINMutation } from '../../../store/api/userApi';
 import { getRtkErrorMessage } from '../../shared/rtkError';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { pos, posTouchBtnPrimary, posTouchBtnGhost } from '../posTokens';
 
 interface PINAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthenticated: (userData: { userId: string; name: string; type: string; role: string; storeId: string }) => void;
+  onAuthenticated: (userData: {
+    userId: string;
+    name: string;
+    type: string;
+    role: string;
+    storeId: string;
+  }) => void;
 }
 
 export const PINAuthModal: React.FC<PINAuthModalProps> = ({
   isOpen,
   onClose,
-  onAuthenticated
+  onAuthenticated,
 }) => {
   const [pin, setPin] = useState<string[]>(['', '', '', '', '']);
   const [error, setError] = useState('');
@@ -29,7 +36,6 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
 
   const [validatePIN] = useValidatePINMutation();
 
-  // Focus first input when modal opens
   useEffect(() => {
     if (isOpen && inputRefs[0].current) {
       setTimeout(() => inputRefs[0].current?.focus(), 100);
@@ -50,16 +56,14 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
     try {
       const result = await validatePIN({ pin: pinString }).unwrap();
 
-      // Success - user authenticated
       onAuthenticated({
         userId: result.userId,
         name: result.name,
         type: result.type,
         role: result.role,
-        storeId: result.storeId
+        storeId: result.storeId,
       });
 
-      // Reset and close
       resetPIN();
       onClose();
     } catch (err: unknown) {
@@ -77,19 +81,16 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
   };
 
   const handlePinChange = (index: number, value: string) => {
-    // Only allow digits
     if (value && !/^\d$/.test(value)) return;
 
     const newPin = [...pin];
     newPin[index] = value;
     setPin(newPin);
 
-    // Auto-focus next input
     if (value && index < 4) {
       inputRefs[index + 1].current?.focus();
     }
 
-    // Auto-submit when all digits entered
     if (index === 4 && value) {
       const fullPin = [...newPin.slice(0, 4), value].join('');
       if (fullPin.length === 5) {
@@ -101,10 +102,8 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       if (!pin[index] && index > 0) {
-        // Move to previous input if current is empty
         inputRefs[index - 1].current?.focus();
       } else {
-        // Clear current digit
         const newPin = [...pin];
         newPin[index] = '';
         setPin(newPin);
@@ -129,7 +128,6 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
       }
       setPin(newPin);
 
-      // Focus the next empty input or last input
       const nextIndex = Math.min(pastedData.length, 4);
       inputRefs[nextIndex].current?.focus();
     }
@@ -137,11 +135,15 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
 
   if (!isOpen) return null;
 
+  const disabled = loading || pin.join('').length !== 5;
+
   return (
     <div style={styles.overlay} data-testid="pin-auth-modal-overlay">
       <div style={styles.modal} role="dialog" aria-modal="true" aria-labelledby="pos-pin-title">
         <div style={styles.header}>
-          <h2 id="pos-pin-title" style={styles.title}>Cashier PIN</h2>
+          <h2 id="pos-pin-title" style={styles.title}>
+            Cashier PIN
+          </h2>
           <p style={styles.subtitle}>Enter your 5-digit PIN to authorize this charge</p>
         </div>
 
@@ -159,7 +161,7 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
               onPaste={handlePaste}
               style={{
                 ...styles.pinInput,
-                ...(error ? styles.pinInputError : {})
+                ...(error ? styles.pinInputError : {}),
               }}
               disabled={loading}
               autoComplete="off"
@@ -169,28 +171,39 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
 
         {error && (
           <div style={styles.errorContainer}>
-            <WarningAmberIcon style={{ fontSize: '18px', color: '#d32f2f' }} />
+            <WarningAmberIcon style={{ fontSize: '18px', color: pos.error }} />
             <span style={styles.errorText}>{error}</span>
           </div>
         )}
 
         <div style={styles.actions}>
           <button
+            type="button"
             onClick={() => {
               resetPIN();
               onClose();
             }}
             disabled={loading}
-            style={styles.cancelButton}
+            style={{ ...posTouchBtnGhost, flex: 1, minHeight: 52 }}
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleSubmit}
-            disabled={loading || pin.join('').length !== 5}
+            disabled={disabled}
             style={{
-              ...styles.submitButton,
-              ...(loading || pin.join('').length !== 5 ? styles.submitButtonDisabled : {})
+              ...posTouchBtnPrimary,
+              flex: 1,
+              minHeight: 52,
+              ...(disabled
+                ? {
+                    background: pos.faint,
+                    cursor: 'not-allowed',
+                    opacity: 0.65,
+                    boxShadow: 'none',
+                  }
+                : {}),
             }}
           >
             {loading ? 'Verifying...' : 'Continue'}
@@ -198,14 +211,12 @@ export const PINAuthModal: React.FC<PINAuthModalProps> = ({
         </div>
 
         <div style={styles.helpText}>
-          <p>Don't have a PIN? Contact your manager.</p>
+          <p>Don&apos;t have a PIN? Contact your manager.</p>
         </div>
       </div>
     </div>
   );
 };
-
-const CASHIER_BLUE = '#2196F3';
 
 const styles: Record<string, React.CSSProperties> = {
   overlay: {
@@ -214,122 +225,91 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.72)',
+    backgroundColor: 'rgba(0, 0, 0, 0.72)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10000,
-    backdropFilter: 'blur(6px)',
+    backdropFilter: 'blur(8px)',
   },
   modal: {
-    backgroundColor: '#ffffff',
-    borderRadius: '20px',
+    backgroundColor: pos.surfaceElevated,
+    borderRadius: 20,
     padding: '36px 32px',
-    maxWidth: '440px',
+    maxWidth: 440,
     width: '92%',
-    boxShadow: '0 24px 64px rgba(33, 150, 243, 0.25)',
-    borderTop: `4px solid ${CASHIER_BLUE}`,
+    boxShadow: pos.shadow.raised.lg,
+    border: `1px solid ${pos.border}`,
+    borderTop: `4px solid ${pos.role}`,
+    fontFamily: pos.font,
   },
   header: {
     textAlign: 'center',
-    marginBottom: '28px',
+    marginBottom: 28,
   },
   title: {
-    fontSize: '24px',
+    fontSize: 24,
     fontWeight: 800,
-    color: '#0f172a',
+    color: pos.ink,
     margin: '0 0 8px 0',
   },
   subtitle: {
-    fontSize: '14px',
-    color: '#64748b',
+    fontSize: 14,
+    color: pos.muted,
     margin: 0,
     lineHeight: 1.4,
   },
   pinInputContainer: {
     display: 'flex',
     justifyContent: 'center',
-    gap: '10px',
-    marginBottom: '20px',
+    gap: 10,
+    marginBottom: 20,
   },
   pinInput: {
-    width: '56px',
-    height: '64px',
+    width: 56,
+    height: 64,
     minWidth: 48,
     minHeight: 48,
-    fontSize: '28px',
+    fontSize: 28,
     fontWeight: 700,
     textAlign: 'center',
-    border: '2px solid #e2e8f0',
-    borderRadius: '12px',
-    backgroundColor: '#f8fafc',
+    border: `2px solid ${pos.border}`,
+    borderRadius: 12,
+    backgroundColor: pos.surfaceAlt,
+    color: pos.ink,
     transition: 'all 0.15s ease',
     outline: 'none',
     fontFamily: 'ui-monospace, monospace',
   },
   pinInputError: {
-    borderColor: '#ef4444',
-    backgroundColor: '#fef2f2',
+    borderColor: pos.error,
+    backgroundColor: pos.errorSoft,
   },
   errorContainer: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '8px',
-    backgroundColor: '#fef2f2',
+    gap: 8,
+    backgroundColor: pos.errorSoft,
     padding: '12px 16px',
-    borderRadius: '10px',
-    marginBottom: '20px',
-  },
-  errorIcon: {
-    fontSize: '18px',
-    color: '#dc2626',
+    borderRadius: 10,
+    marginBottom: 20,
+    border: `1px solid ${pos.error}`,
   },
   errorText: {
-    color: '#dc2626',
-    fontSize: '14px',
+    color: pos.errorDark,
+    fontSize: 14,
     fontWeight: 600,
   },
   actions: {
     display: 'flex',
-    gap: '12px',
-    marginBottom: '12px',
-  },
-  cancelButton: {
-    flex: 1,
-    minHeight: 52,
-    padding: '14px 20px',
-    fontSize: '16px',
-    fontWeight: 700,
-    backgroundColor: '#f1f5f9',
-    color: '#475569',
-    border: 'none',
-    borderRadius: '12px',
-    cursor: 'pointer',
-  },
-  submitButton: {
-    flex: 1,
-    minHeight: 52,
-    padding: '14px 20px',
-    fontSize: '16px',
-    fontWeight: 700,
-    backgroundColor: CASHIER_BLUE,
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    boxShadow: '0 8px 20px rgba(33, 150, 243, 0.35)',
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#94a3b8',
-    cursor: 'not-allowed',
-    opacity: 0.65,
-    boxShadow: 'none',
+    gap: 12,
+    marginBottom: 12,
   },
   helpText: {
     textAlign: 'center',
-    fontSize: '12px',
-    color: '#94a3b8',
-    marginTop: '4px',
+    fontSize: 12,
+    color: pos.faint,
+    marginTop: 4,
   },
 };

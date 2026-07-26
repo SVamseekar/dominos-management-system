@@ -15,8 +15,8 @@ describe('posHelpers', () => {
     expect(POS_TABS.every((t) => t.shortcut.startsWith('F'))).toBe(true);
   });
 
-  it('uses Cashier role blue #2196F3', () => {
-    expect(CASHIER_ROLE).toBe('#2196F3');
+  it('uses POS warm orange accent #f97316', () => {
+    expect(CASHIER_ROLE).toBe('#f97316');
   });
 
   it('styles CASH / CARD / WALLET / UPI badges distinctly', () => {

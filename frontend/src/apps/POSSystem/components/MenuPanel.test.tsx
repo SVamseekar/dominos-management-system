@@ -145,7 +145,7 @@ describe('MenuPanel', () => {
       });
 
       expect(screen.getByTestId('menu-empty')).toBeInTheDocument();
-      expect(screen.getByText(/No items in this filter/i)).toBeInTheDocument();
+      expect(screen.getByText(/No items match/i)).toBeInTheDocument();
     });
   });
 
@@ -219,10 +219,9 @@ describe('MenuPanel', () => {
       });
 
       // Prefer grid tile (data-testid) over popular chip
-      const tiles = screen.getAllByText('Masala Dosa');
-      const tile = tiles[tiles.length - 1].closest('button');
+      const tile = screen.getByTestId('menu-item-item-4');
       expect(tile).toBeTruthy();
-      await user.click(tile!);
+      await user.click(tile);
 
       expect(mockOnAddItem).toHaveBeenCalledTimes(1);
     });

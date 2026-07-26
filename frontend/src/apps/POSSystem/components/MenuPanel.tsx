@@ -1,7 +1,7 @@
 // src/apps/POSSystem/components/MenuPanel.tsx
 /**
- * POS menu column — Toast/Square-style dense tile grid.
- * Large touch targets, fast filter chips, clear empty/error/loading.
+ * POS menu column — dark photo grid, cuisine chips, popular strip.
+ * Large touch targets for landscape cashier floor.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -22,6 +22,14 @@ import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import SearchIcon from '@mui/icons-material/Search';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import LunchDiningIcon from '@mui/icons-material/LunchDining';
+import LocalPizzaIcon from '@mui/icons-material/LocalPizza';
+import RiceBowlIcon from '@mui/icons-material/RiceBowl';
+import LocalCafeIcon from '@mui/icons-material/LocalCafe';
+import IcecreamIcon from '@mui/icons-material/Icecream';
+import RamenDiningIcon from '@mui/icons-material/RamenDining';
+import SetMealIcon from '@mui/icons-material/SetMeal';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { pos, posTouchBtnBase } from '../posTokens';
 
 interface MenuPanelProps {
@@ -38,6 +46,29 @@ const CUISINE_LABEL: Record<string, string> = {
   BEVERAGES: 'Drinks',
   DESSERTS: 'Desserts',
 };
+
+function cuisineIcon(cuisine: Cuisine): React.ReactNode {
+  const sx = { fontSize: 20 };
+  switch (cuisine) {
+    case Cuisine.AMERICAN:
+      return <LunchDiningIcon style={sx} />;
+    case Cuisine.ITALIAN:
+      return <LocalPizzaIcon style={sx} />;
+    case Cuisine.SOUTH_INDIAN:
+    case Cuisine.NORTH_INDIAN:
+      return <RiceBowlIcon style={sx} />;
+    case Cuisine.INDO_CHINESE:
+      return <RamenDiningIcon style={sx} />;
+    case Cuisine.CONTINENTAL:
+      return <SetMealIcon style={sx} />;
+    case Cuisine.BEVERAGES:
+      return <LocalCafeIcon style={sx} />;
+    case Cuisine.DESSERTS:
+      return <IcecreamIcon style={sx} />;
+    default:
+      return <FastfoodIcon style={sx} />;
+  }
+}
 
 function getCategoriesForCuisine(cuisine: Cuisine): MenuCategory[] {
   const categoryMap: Record<Cuisine, MenuCategory[]> = {
@@ -79,7 +110,7 @@ function getCategoriesForCuisine(cuisine: Cuisine): MenuCategory[] {
 
 const chipBase: React.CSSProperties = {
   ...posTouchBtnBase,
-  minHeight: 40,
+  minHeight: 44,
   padding: '8px 14px',
   fontSize: pos.type.fontSize.xs,
   fontWeight: pos.type.fontWeight.semibold,
@@ -127,11 +158,12 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           (item: MenuItem) =>
             item.isRecommended && item.isAvailable && item.cuisine === selectedCuisine
         )
-        .slice(0, 4),
+        .slice(0, 6),
     [menuItems, selectedCuisine]
   );
 
-  const handleAdd = (item: MenuItem) => {
+  const handleAdd = (item: MenuItem, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     onAddItem(item);
     setJustAddedId(item.id);
     window.setTimeout(() => setJustAddedId((id) => (id === item.id ? null : id)), 280);
@@ -146,8 +178,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
       <div
         style={{
           padding: pos.space[3],
-          borderBottom: `2px solid ${pos.border}`,
-          background: `linear-gradient(180deg, ${pos.surface} 0%, ${pos.surfaceAlt} 100%)`,
+          borderBottom: `1px solid ${pos.border}`,
+          background: `linear-gradient(180deg, ${pos.surfaceElevated} 0%, ${pos.surface} 100%)`,
           flexShrink: 0,
         }}
       >
@@ -178,16 +210,17 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
               fontSize: pos.type.fontSize.xs,
               fontWeight: pos.type.fontWeight.semibold,
               background: pos.roleSoft,
-              color: pos.roleDark,
+              color: pos.role,
               padding: '4px 10px',
               borderRadius: pos.radius.full,
+              border: `1px solid ${pos.roleBorder}`,
             }}
           >
             {filteredItems.length} items
           </span>
         </div>
 
-        {/* Search — large hit area */}
+        {/* Search */}
         <div style={{ position: 'relative', marginBottom: pos.space[2] }}>
           <SearchIcon
             style={{
@@ -210,10 +243,10 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
               width: '100%',
               minHeight: pos.touchMin,
               padding: `12px 14px 12px 44px`,
-              border: `2px solid ${pos.border}`,
+              border: `1px solid ${pos.border}`,
               borderRadius: pos.radius.md,
               outline: 'none',
-              backgroundColor: pos.surface,
+              backgroundColor: pos.surfaceAlt,
               fontSize: pos.type.fontSize.sm,
               color: pos.ink,
               fontFamily: pos.font,
@@ -230,11 +263,11 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           />
         </div>
 
-        {/* Cuisine strip */}
+        {/* Cuisine strip with icons */}
         <div
           style={{
             display: 'flex',
-            gap: 6,
+            gap: 8,
             overflowX: 'auto',
             paddingBottom: 6,
             marginBottom: 6,
@@ -253,20 +286,29 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 }}
                 style={{
                   ...chipBase,
+                  flexDirection: 'column',
+                  gap: 4,
+                  minWidth: 72,
+                  minHeight: 64,
+                  padding: '8px 10px',
                   ...(active
                     ? {
-                        background: pos.role,
+                        background: `linear-gradient(145deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
                         color: pos.inverse,
-                        boxShadow: `0 4px 12px ${pos.roleShadow}`,
+                        boxShadow: `0 4px 14px ${pos.roleShadow}`,
+                        border: 'none',
                       }
                     : {
-                        background: pos.surface,
+                        background: pos.surfaceElevated,
                         color: pos.muted,
                         border: `1px solid ${pos.border}`,
                       }),
                 }}
               >
-                {CUISINE_LABEL[cuisine] || cuisine.replace(/_/g, ' ')}
+                {cuisineIcon(cuisine)}
+                <span style={{ fontSize: 10, lineHeight: 1.15, textAlign: 'center' }}>
+                  {CUISINE_LABEL[cuisine] || cuisine.replace(/_/g, ' ')}
+                </span>
               </button>
             );
           })}
@@ -290,8 +332,12 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 ...chipBase,
                 minHeight: 36,
                 ...(selectedCategory === null
-                  ? { background: pos.roleDark, color: pos.inverse }
-                  : { background: pos.surfaceAlt, color: pos.muted }),
+                  ? { background: pos.roleDark, color: pos.inverse, border: 'none' }
+                  : {
+                      background: pos.surfaceAlt,
+                      color: pos.muted,
+                      border: `1px solid ${pos.border}`,
+                    }),
               }}
             >
               All
@@ -305,8 +351,12 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                   ...chipBase,
                   minHeight: 36,
                   ...(selectedCategory === category
-                    ? { background: pos.roleDark, color: pos.inverse }
-                    : { background: pos.surfaceAlt, color: pos.muted }),
+                    ? { background: pos.roleDark, color: pos.inverse, border: 'none' }
+                    : {
+                        background: pos.surfaceAlt,
+                        color: pos.muted,
+                        border: `1px solid ${pos.border}`,
+                      }),
                 }}
               >
                 {category.replace(/_/g, ' ')}
@@ -345,8 +395,13 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                               ? pos.successDark
                               : pos.success,
                         color: pos.inverse,
+                        border: 'none',
                       }
-                    : { background: pos.surfaceAlt, color: pos.faint }),
+                    : {
+                        background: pos.surfaceAlt,
+                        color: pos.faint,
+                        border: `1px solid ${pos.border}`,
+                      }),
                 }}
               >
                 {label}
@@ -356,7 +411,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
         </div>
       </div>
 
-      {/* Quick-add popular */}
+      {/* Popular strip — horizontal photo cards when available */}
       {!searchTerm && selectedCategory === null && popularItems.length > 0 && (
         <div
           style={{
@@ -371,7 +426,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
               margin: `0 0 ${pos.space[2]} 0`,
               fontSize: 11,
               fontWeight: pos.type.fontWeight.bold,
-              color: pos.roleDark,
+              color: pos.role,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
               display: 'flex',
@@ -382,7 +437,15 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
             <LocalFireDepartmentIcon style={{ fontSize: 14 }} />
             Popular — tap to add
           </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              overflowX: 'auto',
+              paddingBottom: 4,
+              scrollbarWidth: 'thin',
+            }}
+          >
             {popularItems.map((item: MenuItem) => (
               <button
                 key={item.id}
@@ -390,18 +453,64 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 onClick={() => handleAdd(item)}
                 style={{
                   ...posTouchBtnBase,
-                  minHeight: 44,
-                  padding: '8px 14px',
-                  background: pos.role,
-                  color: pos.inverse,
-                  fontSize: pos.type.fontSize.xs,
-                  boxShadow: `0 2px 8px ${pos.roleShadow}`,
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  minWidth: 120,
+                  maxWidth: 140,
+                  minHeight: 48,
+                  padding: 0,
+                  overflow: 'hidden',
+                  background: pos.surfaceElevated,
+                  border: `1px solid ${pos.border}`,
+                  borderRadius: pos.radius.md,
+                  color: pos.ink,
+                  boxShadow: pos.shadow.soft,
                 }}
               >
-                {item.name}
-                <span style={{ opacity: 0.85, fontWeight: 500 }}>
-                  {formatMoney(item.basePrice, currency, locale)}
-                </span>
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    style={{
+                      width: '100%',
+                      height: 64,
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      height: 48,
+                      background: `linear-gradient(135deg, ${pos.roleSoft}, ${pos.surfaceAlt})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 18,
+                      fontWeight: 800,
+                      color: pos.role,
+                    }}
+                  >
+                    {item.name.charAt(0)}
+                  </div>
+                )}
+                <div style={{ padding: '8px 10px', textAlign: 'left' }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      lineHeight: 1.2,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {item.name}
+                  </div>
+                  <div style={{ fontSize: 11, color: pos.role, fontWeight: 700, marginTop: 2 }}>
+                    {formatMoney(item.basePrice, currency, locale)}
+                  </div>
+                </div>
               </button>
             ))}
           </div>
@@ -423,17 +532,18 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
             data-testid="menu-loading"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))',
-              gap: 10,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+              gap: 12,
             }}
           >
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
                 style={{
-                  height: 128,
+                  height: 168,
                   borderRadius: pos.radius.md,
-                  background: pos.border,
+                  background: pos.surfaceElevated,
+                  border: `1px solid ${pos.border}`,
                   animation: 'posMenuPulse 1.4s ease-in-out infinite',
                   animationDelay: `${i * 0.05}s`,
                 }}
@@ -454,7 +564,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
             style={{
               padding: pos.space[6],
               borderRadius: pos.radius.lg,
-              border: `2px solid ${pos.error}`,
+              border: `1px solid ${pos.error}`,
               background: pos.errorSoft,
               textAlign: 'center',
             }}
@@ -486,7 +596,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
             style={{
               padding: pos.space[8],
               borderRadius: pos.radius.lg,
-              border: `2px dashed ${pos.border}`,
+              border: `1px dashed ${pos.border}`,
               background: pos.surface,
               textAlign: 'center',
               color: pos.muted,
@@ -494,7 +604,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           >
             <RestaurantMenuIcon style={{ fontSize: 40, color: pos.faint, marginBottom: 12 }} />
             <div style={{ fontWeight: 600, color: pos.ink, marginBottom: 6 }}>
-              {searchTerm ? 'No matches' : 'No items in this filter'}
+              {searchTerm ? 'No matches' : 'No items match'}
             </div>
             <div style={{ fontSize: 13 }}>
               {searchTerm
@@ -508,144 +618,205 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))',
-              gap: 10,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+              gap: 12,
             }}
           >
             {filteredItems.map((item: MenuItem) => {
               const flash = justAddedId === item.id;
               return (
-                <button
+                <div
                   key={item.id}
-                  type="button"
                   data-testid={`menu-item-${item.id}`}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleAdd(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleAdd(item);
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'stretch',
                     textAlign: 'left',
-                    minHeight: 132,
-                    padding: 12,
+                    minHeight: 168,
+                    padding: 0,
+                    overflow: 'hidden',
                     borderRadius: pos.radius.md,
-                    border: flash ? `2px solid ${pos.success}` : `2px solid ${pos.border}`,
+                    border: flash ? `2px solid ${pos.success}` : `1px solid ${pos.border}`,
                     background: flash ? pos.successSoft : pos.surface,
                     cursor: 'pointer',
                     boxShadow: pos.shadow.raised.sm,
-                    transition: 'transform 0.12s ease, border-color 0.12s ease, background 0.12s ease',
+                    transition:
+                      'transform 0.12s ease, border-color 0.12s ease, background 0.12s ease',
                     fontFamily: pos.font,
                     position: 'relative',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = pos.role;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = `0 8px 16px ${pos.roleShadow}`;
+                    e.currentTarget.style.transform = 'scale(0.98)';
+                    e.currentTarget.style.boxShadow = `0 8px 20px ${pos.roleShadow}`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = flash ? pos.success : pos.border;
-                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.transform = 'scale(1)';
                     e.currentTarget.style.boxShadow = pos.shadow.raised.sm as string;
                   }}
                 >
-                  {item.isRecommended && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: pos.warning,
-                      }}
-                      title="Popular"
-                    />
-                  )}
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: pos.ink,
-                      lineHeight: 1.25,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      minHeight: '2.5em',
-                      marginBottom: 6,
-                      paddingRight: 10,
-                    }}
-                  >
-                    {item.name}
-                  </span>
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-                    {item.dietaryInfo?.includes(DietaryType.VEGETARIAN) && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 700,
-                          padding: '2px 5px',
-                          borderRadius: 4,
-                          background: pos.successSoft,
-                          color: pos.successDark,
-                        }}
-                      >
-                        VEG
-                      </span>
-                    )}
-                    {item.dietaryInfo?.includes(DietaryType.NON_VEGETARIAN) && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 700,
-                          padding: '2px 5px',
-                          borderRadius: 4,
-                          background: pos.errorSoft,
-                          color: pos.errorDark,
-                        }}
-                      >
-                        NON-VEG
-                      </span>
-                    )}
-                  </div>
+                  {/* Image / placeholder */}
                   <div
                     style={{
-                      marginTop: 'auto',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: 8,
+                      height: 88,
+                      background: pos.surfaceAlt,
+                      position: 'relative',
+                      overflow: 'hidden',
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 800,
-                        color: pos.roleDark,
-                      }}
-                    >
-                      {formatMoney(item.basePrice, currency, locale)}
-                    </span>
-                    <span
-                      style={{
-                        minWidth: 40,
-                        minHeight: 36,
-                        borderRadius: pos.radius.sm,
-                        background: pos.role,
-                        color: pos.inverse,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: 18,
-                        lineHeight: 1,
-                      }}
-                      aria-hidden
-                    >
-                      +
-                    </span>
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt=""
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: `linear-gradient(145deg, ${pos.surfaceElevated}, ${pos.surfaceAlt})`,
+                          fontSize: 28,
+                          fontWeight: 800,
+                          color: pos.faint,
+                        }}
+                      >
+                        {item.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    {item.isRecommended && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 8,
+                          left: 8,
+                          fontSize: 9,
+                          fontWeight: 800,
+                          padding: '3px 6px',
+                          borderRadius: 6,
+                          background: pos.role,
+                          color: pos.inverse,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Hot
+                      </span>
+                    )}
                   </div>
-                </button>
+
+                  <div style={{ padding: 10, display: 1, display: 'flex', flexDirection: 'column' }}>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: pos.ink,
+                        lineHeight: 1.25,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        minHeight: '2.5em',
+                        marginBottom: 6,
+                      }}
+                    >
+                      {item.name}
+                    </span>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+                      {item.dietaryInfo?.includes(DietaryType.VEGETARIAN) && (
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 700,
+                            padding: '2px 5px',
+                            borderRadius: 4,
+                            background: pos.successSoft,
+                            color: pos.successDark,
+                          }}
+                        >
+                          VEG
+                        </span>
+                      )}
+                      {item.dietaryInfo?.includes(DietaryType.NON_VEGETARIAN) && (
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 700,
+                            padding: '2px 5px',
+                            borderRadius: 4,
+                            background: pos.errorSoft,
+                            color: pos.errorDark,
+                          }}
+                        >
+                          NON-VEG
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 'auto',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 800,
+                          color: pos.role,
+                        }}
+                      >
+                        {formatMoney(item.basePrice, currency, locale)}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`Add ${item.name}`}
+                        onClick={(e) => handleAdd(item, e)}
+                        style={{
+                          width: 48,
+                          height: 48,
+                          minWidth: 48,
+                          minHeight: 48,
+                          borderRadius: pos.radius.full,
+                          background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
+                          color: pos.inverse,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: 22,
+                          lineHeight: 1,
+                          border: 'none',
+                          cursor: 'pointer',
+                          boxShadow: `0 4px 12px ${pos.roleShadow}`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
