@@ -360,7 +360,6 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 12,
-                  borderLeft: `3px solid ${pos.role}`,
                 }}
               >
                 <div

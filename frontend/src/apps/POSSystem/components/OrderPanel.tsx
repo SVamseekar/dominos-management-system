@@ -87,7 +87,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
       data-testid="order-panel"
       style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
     >
-      <div style={{ ...posPanelHeader, borderTop: `3px solid ${pos.role}` }}>
+      <div style={posPanelHeader}>
         <div
           style={{
             display: 'flex',

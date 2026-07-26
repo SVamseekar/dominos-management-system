@@ -1,7 +1,6 @@
 /**
- * POS dark-premium craft system — staff landscape surface.
- * Layout + glass chrome + orange energy (Pinterest craft ref).
- * Not a consumer phone app; keep 3-column cashier workflow.
+ * POS staff tokens — MaSoVa cashier landscape surface only.
+ * Dark glass + warm orange accent. Do not import customer/manager token sets.
  */
 import type { CSSProperties } from 'react';
 import { spacing, typography, borderRadius } from '../../styles/design-tokens';

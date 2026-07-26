@@ -240,7 +240,6 @@ const styles: Record<string, React.CSSProperties> = {
     width: '92%',
     boxShadow: pos.shadow.raised.lg,
     border: `1px solid ${pos.border}`,
-    borderTop: `4px solid ${pos.role}`,
     fontFamily: pos.font,
   },
   header: {

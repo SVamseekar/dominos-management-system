@@ -473,7 +473,7 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
       data-testid="customer-panel"
       style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
     >
-      <div style={{ ...posPanelHeader, borderTop: `3px solid ${pos.role}` }}>
+      <div style={posPanelHeader}>
         <h3 style={{ ...posSectionTitle, justifyContent: 'space-between', width: '100%' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <PaymentIcon style={{ fontSize: 22, color: pos.role }} />

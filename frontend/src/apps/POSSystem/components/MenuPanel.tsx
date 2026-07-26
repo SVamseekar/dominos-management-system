@@ -1,7 +1,8 @@
 // src/apps/POSSystem/components/MenuPanel.tsx
 /**
- * Craft menu column — photo grid, icon cuisine rail, popular strip, detail sheet.
- * Landscape cashier floor (not consumer phone layout).
+ * POS menu column — store menu from commerce API only.
+ * Cuisine / category / dietary from MenuItem fields (MaSoVa enums).
+ * Landscape staff grid: search → filters → add to ticket.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -20,7 +21,6 @@ import {
 import { formatMoney } from '../../../utils/currency';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import SearchIcon from '@mui/icons-material/Search';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import LunchDiningIcon from '@mui/icons-material/LunchDining';
 import LocalPizzaIcon from '@mui/icons-material/LocalPizza';
@@ -43,6 +43,7 @@ interface MenuPanelProps {
   onAddItem: (item: MenuItem, quantity?: number, instructions?: string) => void;
 }
 
+/** Display labels for existing Cuisine enum values only */
 const CUISINE_LABEL: Record<string, string> = {
   SOUTH_INDIAN: 'South Indian',
   NORTH_INDIAN: 'North Indian',
@@ -54,8 +55,20 @@ const CUISINE_LABEL: Record<string, string> = {
   DESSERTS: 'Desserts',
 };
 
+/** Prefer order when picking default cuisine — only if present in loaded menu */
+const CUISINE_DEFAULT_PRIORITY: Cuisine[] = [
+  Cuisine.ITALIAN,
+  Cuisine.CONTINENTAL,
+  Cuisine.AMERICAN,
+  Cuisine.SOUTH_INDIAN,
+  Cuisine.NORTH_INDIAN,
+  Cuisine.INDO_CHINESE,
+  Cuisine.BEVERAGES,
+  Cuisine.DESSERTS,
+];
+
 function cuisineIcon(cuisine: Cuisine): React.ReactNode {
-  const sx = { fontSize: 22 };
+  const sx = { fontSize: 20 };
   switch (cuisine) {
     case Cuisine.AMERICAN:
       return <LunchDiningIcon style={sx} />;
@@ -77,50 +90,26 @@ function cuisineIcon(cuisine: Cuisine): React.ReactNode {
   }
 }
 
-function getCategoriesForCuisine(cuisine: Cuisine): MenuCategory[] {
-  const categoryMap: Record<Cuisine, MenuCategory[]> = {
-    [Cuisine.SOUTH_INDIAN]: [
-      MenuCategory.DOSA,
-      MenuCategory.IDLY_VADA,
-      MenuCategory.SOUTH_INDIAN_MEALS,
-      MenuCategory.RICE_VARIETIES,
-    ],
-    [Cuisine.NORTH_INDIAN]: [
-      MenuCategory.CURRY_GRAVY,
-      MenuCategory.DAL_DISHES,
-      MenuCategory.NORTH_INDIAN_MEALS,
-      MenuCategory.RICE_VARIETIES,
-      MenuCategory.CHAPATI_ROTI,
-      MenuCategory.NAAN_KULCHA,
-    ],
-    [Cuisine.INDO_CHINESE]: [
-      MenuCategory.FRIED_RICE,
-      MenuCategory.NOODLES,
-      MenuCategory.MANCHURIAN,
-    ],
-    [Cuisine.ITALIAN]: [MenuCategory.PIZZA, MenuCategory.SIDES],
-    [Cuisine.AMERICAN]: [MenuCategory.BURGER, MenuCategory.SIDES],
-    [Cuisine.CONTINENTAL]: [MenuCategory.SIDES],
-    [Cuisine.BEVERAGES]: [
-      MenuCategory.HOT_DRINKS,
-      MenuCategory.COLD_DRINKS,
-      MenuCategory.TEA_CHAI,
-    ],
-    [Cuisine.DESSERTS]: [
-      MenuCategory.COOKIES_BROWNIES,
-      MenuCategory.ICE_CREAM,
-      MenuCategory.DESSERT_SPECIALS,
-    ],
-  };
-  return categoryMap[cuisine] || [];
+function formatCategoryLabel(category: string): string {
+  return category.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+const chip: React.CSSProperties = {
+  ...posTouchBtnBase,
+  minHeight: 40,
+  padding: '8px 12px',
+  fontSize: 12,
+  borderRadius: 10,
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
+};
 
 const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
   const currency = useAppSelector(selectCartCurrency);
   const locale = useAppSelector(selectCartLocale);
   const selectedStoreId = useAppSelector(selectSelectedStoreId);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCuisine, setSelectedCuisine] = useState<Cuisine>(Cuisine.SOUTH_INDIAN);
+  const [selectedCuisine, setSelectedCuisine] = useState<Cuisine | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   const [selectedDietary, setSelectedDietary] = useState<DietaryType | null>(null);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
@@ -135,28 +124,62 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
     if (selectedStoreId) void refetch();
   }, [selectedStoreId, refetch]);
 
-  const availableCategories = getCategoriesForCuisine(selectedCuisine);
+  /** Cuisines that actually appear on the loaded store menu */
+  const availableCuisines = useMemo(() => {
+    const set = new Set<Cuisine>();
+    menuItems.forEach((item) => {
+      if (item.isAvailable && item.cuisine) set.add(item.cuisine);
+    });
+    const list = Array.from(set);
+    list.sort((a, b) => {
+      const ia = CUISINE_DEFAULT_PRIORITY.indexOf(a);
+      const ib = CUISINE_DEFAULT_PRIORITY.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+    return list;
+  }, [menuItems]);
+
+  // Sync selection to menu data (never invent a cuisine not on the menu)
+  useEffect(() => {
+    if (availableCuisines.length === 0) {
+      setSelectedCuisine(null);
+      return;
+    }
+    if (!selectedCuisine || !availableCuisines.includes(selectedCuisine)) {
+      setSelectedCuisine(availableCuisines[0]);
+      setSelectedCategory(null);
+    }
+  }, [availableCuisines, selectedCuisine]);
+
+  /** Categories from items in the active cuisine — not a hard-coded map alone */
+  const availableCategories = useMemo(() => {
+    if (!selectedCuisine) return [] as MenuCategory[];
+    const set = new Set<MenuCategory>();
+    menuItems.forEach((item) => {
+      if (item.isAvailable && item.cuisine === selectedCuisine && item.category) {
+        set.add(item.category);
+      }
+    });
+    return Array.from(set).sort();
+  }, [menuItems, selectedCuisine]);
 
   const filteredItems = useMemo(() => {
     return menuItems.filter((item: MenuItem) => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCuisine = item.cuisine === selectedCuisine;
+      if (!item.isAvailable) return false;
+      const matchesSearch =
+        !searchTerm ||
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCuisine = !selectedCuisine || item.cuisine === selectedCuisine;
       const matchesCategory = selectedCategory === null || item.category === selectedCategory;
       const matchesDietary = !selectedDietary || item.dietaryInfo?.includes(selectedDietary);
-      return matchesSearch && matchesCuisine && matchesCategory && matchesDietary && item.isAvailable;
+      // When searching globally, show across cuisines
+      if (searchTerm.trim()) {
+        return matchesSearch && matchesDietary;
+      }
+      return matchesSearch && matchesCuisine && matchesCategory && matchesDietary;
     });
   }, [menuItems, searchTerm, selectedCuisine, selectedCategory, selectedDietary]);
-
-  const popularItems = useMemo(
-    () =>
-      menuItems
-        .filter(
-          (item: MenuItem) =>
-            item.isRecommended && item.isAvailable && item.cuisine === selectedCuisine
-        )
-        .slice(0, 8),
-    [menuItems, selectedCuisine]
-  );
 
   const flashAdd = (item: MenuItem, qty = 1, instructions?: string) => {
     onAddItem(item, qty, instructions);
@@ -174,33 +197,27 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             marginBottom: 12,
             gap: 12,
           }}
         >
-          <div>
-            <h3 style={posSectionTitle}>
-              <RestaurantMenuIcon style={{ fontSize: 22, color: pos.role }} />
-              Menu
-            </h3>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: pos.muted }}>
-              Tap photo for details · <span style={{ color: pos.role }}>+</span> to quick-add
-            </p>
-          </div>
+          <h3 style={posSectionTitle}>
+            <RestaurantMenuIcon style={{ fontSize: 22, color: pos.role }} />
+            Menu
+          </h3>
           <span
             style={{
               fontSize: 12,
-              fontWeight: 800,
-              background: pos.roleSoft,
-              color: pos.role,
-              padding: '8px 12px',
-              borderRadius: 999,
-              border: `1px solid ${pos.roleBorder}`,
-              whiteSpace: 'nowrap',
+              fontWeight: 700,
+              color: pos.muted,
+              background: 'rgba(255,255,255,0.04)',
+              padding: '6px 10px',
+              borderRadius: 8,
+              border: `1px solid ${pos.border}`,
             }}
           >
-            {filteredItems.length} live
+            {filteredItems.length} items
           </span>
         </div>
 
@@ -208,7 +225,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <SearchIcon
             style={{
               position: 'absolute',
-              left: 14,
+              left: 12,
               top: '50%',
               transform: 'translateY(-50%)',
               fontSize: 18,
@@ -218,15 +235,14 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           />
           <input
             type="search"
-            placeholder="Search your menu…"
+            placeholder="Search menu…"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             aria-label="Search menu items"
             style={{
               ...posField,
-              paddingLeft: 44,
-              borderRadius: 999,
-              background: 'rgba(0,0,0,0.4)',
+              paddingLeft: 40,
+              borderRadius: 10,
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = pos.role;
@@ -239,71 +255,76 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           />
         </div>
 
-        {/* Icon cuisine rail */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 10,
-            overflowX: 'auto',
-            paddingBottom: 8,
-            marginBottom: 8,
-            scrollbarWidth: 'thin',
-          }}
-        >
-          {Object.values(Cuisine).map((cuisine) => {
-            const active = selectedCuisine === cuisine;
-            return (
-              <button
-                key={cuisine}
-                type="button"
-                onClick={() => {
-                  setSelectedCuisine(cuisine);
-                  setSelectedCategory(null);
-                }}
-                style={{
-                  ...posTouchBtnBase,
-                  flexDirection: 'column',
-                  gap: 6,
-                  minWidth: 76,
-                  minHeight: 72,
-                  padding: '10px 8px',
-                  borderRadius: 16,
-                  ...(active
-                    ? {
-                        background: `linear-gradient(160deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
-                        color: '#fff',
-                        boxShadow: `0 8px 22px ${pos.roleShadow}`,
-                        border: 'none',
-                      }
-                    : {
-                        background: 'rgba(255,255,255,0.04)',
-                        color: pos.muted,
-                        border: `1px solid ${pos.border}`,
-                      }),
-                }}
-              >
-                {cuisineIcon(cuisine)}
-                <span style={{ fontSize: 10, lineHeight: 1.15, textAlign: 'center', fontWeight: 700 }}>
-                  {CUISINE_LABEL[cuisine] || cuisine.replace(/_/g, ' ')}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        {/* Cuisine — only those returned on the store menu */}
+        {!searchTerm.trim() && availableCuisines.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              overflowX: 'auto',
+              paddingBottom: 8,
+              marginBottom: 8,
+              scrollbarWidth: 'thin',
+            }}
+          >
+            {availableCuisines.map((cuisine) => {
+              const active = selectedCuisine === cuisine;
+              return (
+                <button
+                  key={cuisine}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCuisine(cuisine);
+                    setSelectedCategory(null);
+                  }}
+                  style={{
+                    ...chip,
+                    flexDirection: 'column',
+                    gap: 4,
+                    minWidth: 72,
+                    minHeight: 64,
+                    ...(active
+                      ? {
+                          background: pos.role,
+                          color: '#fff',
+                          border: 'none',
+                          boxShadow: `0 4px 12px ${pos.roleShadow}`,
+                        }
+                      : {
+                          background: pos.surfaceElevated,
+                          color: pos.muted,
+                          border: `1px solid ${pos.border}`,
+                        }),
+                  }}
+                >
+                  {cuisineIcon(cuisine)}
+                  <span style={{ fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.15 }}>
+                    {CUISINE_LABEL[cuisine] || formatCategoryLabel(cuisine)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-        {availableCategories.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 6, marginBottom: 6 }}>
+        {!searchTerm.trim() && availableCategories.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              overflowX: 'auto',
+              paddingBottom: 6,
+              marginBottom: 6,
+            }}
+          >
             <button
               type="button"
               onClick={() => setSelectedCategory(null)}
               style={{
-                ...posTouchBtnBase,
+                ...chip,
                 minHeight: 36,
-                padding: '6px 14px',
-                borderRadius: 999,
-                fontSize: 12,
                 ...(selectedCategory === null
-                  ? { background: pos.role, color: '#fff', border: 'none' }
+                  ? { background: pos.roleDark, color: '#fff', border: 'none' }
                   : {
                       background: 'transparent',
                       color: pos.muted,
@@ -319,11 +340,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 type="button"
                 onClick={() => setSelectedCategory(category)}
                 style={{
-                  ...posTouchBtnBase,
+                  ...chip,
                   minHeight: 36,
-                  padding: '6px 14px',
-                  borderRadius: 999,
-                  fontSize: 12,
                   ...(selectedCategory === category
                     ? { background: pos.roleDark, color: '#fff', border: 'none' }
                     : {
@@ -333,7 +351,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                       }),
                 }}
               >
-                {category.replace(/_/g, ' ')}
+                {formatCategoryLabel(category)}
               </button>
             ))}
           </div>
@@ -343,7 +361,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           {(
             [
               { key: null, label: 'All diet' },
-              { key: DietaryType.VEGETARIAN, label: 'Veg' },
+              { key: DietaryType.VEGETARIAN, label: 'Vegetarian' },
               { key: DietaryType.VEGAN, label: 'Vegan' },
               { key: DietaryType.NON_VEGETARIAN, label: 'Non-veg' },
             ] as const
@@ -355,10 +373,9 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 type="button"
                 onClick={() => setSelectedDietary(key)}
                 style={{
-                  ...posTouchBtnBase,
+                  ...chip,
                   minHeight: 32,
-                  padding: '4px 12px',
-                  borderRadius: 999,
+                  padding: '4px 10px',
                   fontSize: 11,
                   ...(active
                     ? {
@@ -367,12 +384,14 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                             ? pos.error
                             : key === DietaryType.VEGAN
                               ? pos.successDark
-                              : pos.success,
+                              : key === DietaryType.VEGETARIAN
+                                ? pos.success
+                                : pos.role,
                         color: '#fff',
                         border: 'none',
                       }
                     : {
-                        background: 'rgba(255,255,255,0.03)',
+                        background: 'transparent',
                         color: pos.faint,
                         border: `1px solid ${pos.border}`,
                       }),
@@ -385,141 +404,13 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
         </div>
       </div>
 
-      {/* Popular Now rail */}
-      {!searchTerm && selectedCategory === null && popularItems.length > 0 && (
-        <div
-          style={{
-            padding: '12px 16px',
-            borderBottom: `1px solid ${pos.border}`,
-            background: `linear-gradient(90deg, ${pos.roleSoft} 0%, transparent 70%)`,
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 10,
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                fontSize: 12,
-                fontWeight: 800,
-                color: pos.role,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <LocalFireDepartmentIcon style={{ fontSize: 16 }} />
-              Popular now
-            </p>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              overflowX: 'auto',
-              paddingBottom: 4,
-              scrollbarWidth: 'thin',
-            }}
-          >
-            {popularItems.map((item: MenuItem) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => flashAdd(item)}
-                style={{
-                  flex: '0 0 148px',
-                  border: `1px solid ${pos.border}`,
-                  borderRadius: 18,
-                  overflow: 'hidden',
-                  padding: 0,
-                  background: pos.surfaceAlt,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  boxShadow: pos.shadow.soft,
-                  fontFamily: pos.font,
-                }}
-              >
-                <div style={{ height: 88, position: 'relative', background: pos.surfaceElevated }}>
-                  {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 28,
-                        fontWeight: 800,
-                        color: pos.role,
-                      }}
-                    >
-                      {item.name.charAt(0)}
-                    </div>
-                  )}
-                  <span
-                    style={{
-                      position: 'absolute',
-                      bottom: 8,
-                      right: 8,
-                      width: 36,
-                      height: 36,
-                      borderRadius: '50%',
-                      background: pos.role,
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 900,
-                      fontSize: 20,
-                      boxShadow: `0 4px 12px ${pos.roleShadow}`,
-                    }}
-                  >
-                    +
-                  </span>
-                </div>
-                <div style={{ padding: '10px 12px' }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: pos.ink,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {item.name}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: pos.role, marginTop: 2 }}>
-                    {formatMoney(item.basePrice, currency, locale)}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div
         style={{
           flex: 1,
           overflow: 'auto',
-          padding: 14,
+          padding: 12,
           minHeight: 0,
-          background: 'rgba(0,0,0,0.2)',
+          background: pos.surfaceAlt,
         }}
       >
         {isLoading && (
@@ -527,16 +418,16 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
             data-testid="menu-loading"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-              gap: 14,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
+              gap: 10,
             }}
           >
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
                 style={{
-                  height: 200,
-                  borderRadius: 18,
+                  height: 168,
+                  borderRadius: 12,
                   background: pos.surfaceElevated,
                   border: `1px solid ${pos.border}`,
                   animation: 'posMenuPulse 1.4s ease-in-out infinite',
@@ -557,8 +448,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <div
             data-testid="menu-error"
             style={{
-              padding: 28,
-              borderRadius: 18,
+              padding: 24,
+              borderRadius: 12,
               border: `1px solid ${pos.error}`,
               background: pos.errorSoft,
               textAlign: 'center',
@@ -575,7 +466,6 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 ...posTouchBtnBase,
                 background: pos.role,
                 color: '#fff',
-                borderRadius: 999,
               }}
             >
               <RefreshIcon style={{ fontSize: 18 }} />
@@ -588,15 +478,15 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <div
             data-testid="menu-empty"
             style={{
-              padding: 40,
-              borderRadius: 18,
+              padding: 32,
+              borderRadius: 12,
               border: `1px dashed ${pos.border}`,
               background: pos.surface,
               textAlign: 'center',
               color: pos.muted,
             }}
           >
-            <RestaurantMenuIcon style={{ fontSize: 44, color: pos.faint, marginBottom: 12 }} />
+            <RestaurantMenuIcon style={{ fontSize: 40, color: pos.faint, marginBottom: 10 }} />
             <div style={{ fontWeight: 700, color: pos.ink, marginBottom: 6 }}>
               {searchTerm ? 'No matches' : 'No items match'}
             </div>
@@ -612,8 +502,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-              gap: 14,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
+              gap: 10,
             }}
           >
             {filteredItems.map((item: MenuItem) => {
@@ -625,13 +515,11 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    borderRadius: 18,
+                    borderRadius: 12,
                     overflow: 'hidden',
                     border: flash ? `2px solid ${pos.success}` : `1px solid ${pos.border}`,
                     background: flash ? pos.successSoft : pos.surface,
-                    boxShadow: pos.shadow.raised.sm,
-                    transition: 'transform 0.12s ease, box-shadow 0.12s ease',
-                    minHeight: 210,
+                    minHeight: 176,
                   }}
                 >
                   <button
@@ -641,8 +529,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                       border: 'none',
                       padding: 0,
                       cursor: 'pointer',
-                      background: pos.surfaceAlt,
-                      height: 110,
+                      background: pos.surfaceElevated,
+                      height: 96,
                       position: 'relative',
                       display: 'block',
                       width: '100%',
@@ -653,7 +541,12 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                       <img
                         src={item.imageUrl}
                         alt=""
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
                       />
                     ) : (
                       <div
@@ -662,9 +555,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: `linear-gradient(145deg, ${pos.surfaceElevated}, ${pos.surfaceAlt})`,
-                          fontSize: 36,
-                          fontWeight: 900,
+                          fontSize: 28,
+                          fontWeight: 800,
                           color: pos.faint,
                         }}
                       >
@@ -675,25 +567,24 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                       <span
                         style={{
                           position: 'absolute',
-                          top: 8,
-                          left: 8,
+                          top: 6,
+                          left: 6,
                           fontSize: 9,
                           fontWeight: 800,
-                          padding: '4px 8px',
-                          borderRadius: 8,
+                          padding: '3px 6px',
+                          borderRadius: 4,
                           background: pos.role,
                           color: '#fff',
-                          textTransform: 'uppercase',
                         }}
                       >
-                        Hot
+                        Rec
                       </span>
                     )}
                   </button>
 
                   <div
                     style={{
-                      padding: 12,
+                      padding: 10,
                       flex: 1,
                       display: 'flex',
                       flexDirection: 'column',
@@ -720,9 +611,9 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                         <span
                           style={{
                             fontSize: 9,
-                            fontWeight: 800,
-                            padding: '2px 6px',
-                            borderRadius: 6,
+                            fontWeight: 700,
+                            padding: '2px 5px',
+                            borderRadius: 4,
                             background: pos.successSoft,
                             color: pos.successDark,
                           }}
@@ -734,9 +625,9 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                         <span
                           style={{
                             fontSize: 9,
-                            fontWeight: 800,
-                            padding: '2px 6px',
-                            borderRadius: 6,
+                            fontWeight: 700,
+                            padding: '2px 5px',
+                            borderRadius: 4,
                             background: pos.errorSoft,
                             color: pos.errorDark,
                           }}
@@ -754,7 +645,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                         gap: 8,
                       }}
                     >
-                      <span style={{ fontSize: 16, fontWeight: 900, color: pos.role }}>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: pos.ink }}>
                         {formatMoney(item.basePrice, currency, locale)}
                       </span>
                       <button
@@ -764,14 +655,13 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                         style={{
                           width: 48,
                           height: 48,
-                          borderRadius: '50%',
+                          borderRadius: 10,
                           border: 'none',
-                          background: `linear-gradient(145deg, ${pos.role}, ${pos.roleDark})`,
+                          background: pos.role,
                           color: '#fff',
-                          fontSize: 24,
-                          fontWeight: 900,
+                          fontSize: 22,
+                          fontWeight: 800,
                           cursor: 'pointer',
-                          boxShadow: `0 6px 16px ${pos.roleShadow}`,
                           flexShrink: 0,
                         }}
                       >

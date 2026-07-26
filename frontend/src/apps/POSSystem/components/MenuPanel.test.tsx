@@ -34,6 +34,9 @@ const defaultCartState = {
     selectedStoreId: 'store-1',
     selectedStoreName: 'Downtown Branch',
     totalItems: 0,
+    currency: 'EUR',
+    locale: 'de-DE',
+    storeCountryCode: 'DE',
   },
 };
 
@@ -64,20 +67,18 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      expect(
-        screen.getByPlaceholderText('Search your menu…')
-      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Search menu…')).toBeInTheDocument();
     });
 
-    it('renders cuisine tabs', () => {
+    it('renders cuisine tabs from loaded menu only', () => {
       renderWithProviders(<MenuPanel onAddItem={mockOnAddItem} />, {
         useMemoryRouter: true,
         preloadedState: defaultCartState,
       });
 
-      expect(screen.getByText('South Indian')).toBeInTheDocument();
-      expect(screen.getByText('North Indian')).toBeInTheDocument();
       expect(screen.getByText('Italian')).toBeInTheDocument();
+      expect(screen.getByText('American')).toBeInTheDocument();
+      expect(screen.getByText('South Indian')).toBeInTheDocument();
     });
 
     it('renders dietary filter buttons', () => {
@@ -87,7 +88,7 @@ describe('MenuPanel', () => {
       });
 
       expect(screen.getByRole('button', { name: 'All diet' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Veg' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Vegetarian' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Vegan' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Non-veg' })).toBeInTheDocument();
     });
@@ -98,7 +99,7 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      expect(screen.getByText(/live$/)).toBeInTheDocument();
+      expect(screen.getByText(/items$/)).toBeInTheDocument();
     });
   });
 
@@ -122,7 +123,7 @@ describe('MenuPanel', () => {
 
   describe('error state', () => {
     it('shows error message when menu fails to load', () => {
-      mockError = { message: 'Network error' };
+      mockError = { status: 500 };
       mockMenuData = [];
 
       renderWithProviders(<MenuPanel onAddItem={mockOnAddItem} />, {
@@ -150,14 +151,13 @@ describe('MenuPanel', () => {
   });
 
   describe('cuisine filtering', () => {
-    it('defaults to South Indian cuisine', () => {
+    it('defaults to first available cuisine by store menu priority (Italian when present)', () => {
       renderWithProviders(<MenuPanel onAddItem={mockOnAddItem} />, {
         useMemoryRouter: true,
         preloadedState: defaultCartState,
       });
 
-      // South Indian items (Masala Dosa) may appear in popular strip + grid
-      expect(screen.getAllByText('Masala Dosa').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Margherita Pizza').length).toBeGreaterThan(0);
     });
 
     it('filters items when a different cuisine is selected', async () => {
@@ -168,12 +168,10 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      await user.click(screen.getByText('Italian'));
+      await user.click(screen.getByText('South Indian'));
 
-      // Italian items should be visible (popular + grid possible)
-      expect(screen.getAllByText('Margherita Pizza').length).toBeGreaterThan(0);
-      // South Indian items should not
-      expect(screen.queryByText('Masala Dosa')).not.toBeInTheDocument();
+      expect(screen.getAllByText('Masala Dosa').length).toBeGreaterThan(0);
+      expect(screen.queryByText('Margherita Pizza')).not.toBeInTheDocument();
     });
   });
 
@@ -186,9 +184,7 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      // Switch to Italian to see Pizza
-      await user.click(screen.getByText('Italian'));
-      const searchInput = screen.getByPlaceholderText('Search your menu…');
+      const searchInput = screen.getByPlaceholderText('Search menu…');
       await user.type(searchInput, 'Margherita');
 
       expect(screen.getAllByText('Margherita Pizza').length).toBeGreaterThan(0);
@@ -202,7 +198,7 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      const searchInput = screen.getByPlaceholderText('Search your menu…');
+      const searchInput = screen.getByPlaceholderText('Search menu…');
       await user.type(searchInput, 'xyznonexistent');
 
       expect(screen.getByText(/No matches/i)).toBeInTheDocument();
@@ -210,7 +206,7 @@ describe('MenuPanel', () => {
   });
 
   describe('adding items', () => {
-    it('calls onAddItem when a menu tile is clicked', async () => {
+    it('calls onAddItem when add button on menu tile is clicked', async () => {
       const user = userEvent.setup();
 
       renderWithProviders(<MenuPanel onAddItem={mockOnAddItem} />, {
@@ -218,8 +214,7 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      // Orange + button on grid card quick-adds
-      const tile = screen.getByTestId('menu-item-item-4');
+      const tile = screen.getByTestId('menu-item-item-1');
       const addBtn = tile.querySelector('button[aria-label^="Add "]');
       expect(addBtn).toBeTruthy();
       await user.click(addBtn!);

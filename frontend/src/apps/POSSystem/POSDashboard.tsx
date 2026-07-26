@@ -419,7 +419,7 @@ const POSDashboard: React.FC = () => {
         }
       `}</style>
 
-      {/* Craft header */}
+      {/* Stable 3-column header — tabs never shift when Orders/History/Reports content changes */}
       <header
         data-testid="pos-header"
         style={{
@@ -427,30 +427,27 @@ const POSDashboard: React.FC = () => {
           background: pos.headerBg,
           backdropFilter: 'blur(16px)',
           borderBottom: `1px solid ${pos.border}`,
-          boxShadow: `0 1px 0 ${pos.role}55, 0 12px 40px rgba(0,0,0,0.35)`,
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(200px, 1fr) auto minmax(200px, 1fr)',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          columnGap: 16,
           padding: '10px 20px',
           flexShrink: 0,
-          gap: 16,
-          flexWrap: 'wrap',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
           <div
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
+              width: 40,
+              height: 40,
+              borderRadius: 12,
               background: `linear-gradient(145deg, ${pos.role}, ${pos.roleDark})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 900,
-              fontSize: 16,
+              fontSize: 15,
               color: '#fff',
-              boxShadow: `0 6px 18px ${pos.roleShadow}`,
               flexShrink: 0,
             }}
           >
@@ -471,26 +468,23 @@ const POSDashboard: React.FC = () => {
             <div
               data-testid="pos-store-label"
               style={{
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: 800,
                 color: pos.ink,
-                letterSpacing: '-0.03em',
+                letterSpacing: '-0.02em',
                 lineHeight: 1.2,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}
             >
-              {dayPart}
-              {orderUser || user ? (
-                <>
-                  , <span style={{ color: pos.role }}>{staffName.split(' ')[0]}</span>
-                </>
-              ) : null}
+              {selectedStoreName || storeId || 'Point of Sale'}
             </div>
             <div style={{ fontSize: 12, color: pos.muted, marginTop: 1 }}>
-              {selectedStoreName || storeId || 'Point of Sale'}
-              {storeCountryCode ? ` · ${storeCountryCode} · ${currency}` : ''}
+              {dayPart}
+              {orderUser || user ? ` · ${staffName.split(' ')[0]}` : ''}
+              {storeCountryCode ? ` · ${storeCountryCode}` : ''}
+              {currency ? ` · ${currency}` : ''}
             </div>
           </div>
         </div>
@@ -504,6 +498,7 @@ const POSDashboard: React.FC = () => {
             padding: 5,
             borderRadius: 999,
             border: `1px solid ${pos.border}`,
+            justifySelf: 'center',
           }}
           aria-label="POS sections"
         >
@@ -516,7 +511,8 @@ const POSDashboard: React.FC = () => {
               style={{
                 ...posTouchBtnBase,
                 minHeight: 42,
-                padding: '8px 18px',
+                minWidth: 96,
+                padding: '8px 16px',
                 borderRadius: 999,
                 fontSize: 13,
                 gap: 6,
@@ -547,8 +543,19 @@ const POSDashboard: React.FC = () => {
           ))}
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {orderUser && (
+        {/* Right cluster: fixed min width so tabs stay centered across tabs */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 10,
+            flexWrap: 'wrap',
+            minHeight: 48,
+            minWidth: 0,
+          }}
+        >
+          {orderUser ? (
             <div
               data-testid="pos-order-user"
               style={{
@@ -559,16 +566,15 @@ const POSDashboard: React.FC = () => {
                 background: 'rgba(16,185,129,0.12)',
                 borderRadius: 999,
                 border: `1px solid ${pos.success}66`,
-                minHeight: pos.touchMin,
+                minHeight: 44,
               }}
             >
               <div
                 style={{
-                  width: 10,
-                  height: 10,
+                  width: 8,
+                  height: 8,
                   borderRadius: '50%',
                   backgroundColor: pos.success,
-                  boxShadow: `0 0 10px ${pos.success}`,
                 }}
               />
               <div>
@@ -581,53 +587,67 @@ const POSDashboard: React.FC = () => {
                     fontWeight: 700,
                   }}
                 >
-                  Taking order
+                  Serving
                 </div>
                 <div style={{ fontSize: 13, color: pos.successDark, fontWeight: 800 }}>
                   {orderUser.name}
                 </div>
               </div>
             </div>
-          )}
-
-          {!orderUser && activeTab === 'orders' && (
-            <button type="button" onClick={handleNewOrder} style={{ ...posTouchBtnPrimary, minHeight: 44 }}>
-              Start order
+          ) : (
+            <button
+              type="button"
+              onClick={handleNewOrder}
+              style={{
+                ...posTouchBtnPrimary,
+                minHeight: 44,
+                visibility: activeTab === 'orders' ? 'visible' : 'hidden',
+                pointerEvents: activeTab === 'orders' ? 'auto' : 'none',
+              }}
+            >
+              New order
             </button>
           )}
 
-          {activeTab === 'orders' && orderItems.length > 0 && (
-            <div
-              data-testid="pos-cart-total"
+          <div
+            data-testid="pos-cart-total"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              padding: '6px 14px',
+              background:
+                activeTab === 'orders' && orderItems.length > 0
+                  ? pos.roleSoft
+                  : 'transparent',
+              border:
+                activeTab === 'orders' && orderItems.length > 0
+                  ? `1px solid ${pos.roleBorder}`
+                  : '1px solid transparent',
+              borderRadius: 14,
+              minHeight: 44,
+              minWidth: 88,
+              opacity: activeTab === 'orders' && orderItems.length > 0 ? 1 : 0,
+              pointerEvents: 'none',
+            }}
+            aria-hidden={!(activeTab === 'orders' && orderItems.length > 0)}
+          >
+            <span
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-                justifyContent: 'center',
-                padding: '8px 16px',
-                background: `linear-gradient(135deg, ${pos.roleSoft}, rgba(0,0,0,0.25))`,
-                border: `1px solid ${pos.roleBorder}`,
-                borderRadius: 16,
-                minHeight: pos.touchMin,
-                minWidth: 100,
+                fontSize: 9,
+                color: pos.headerMuted,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                fontWeight: 700,
               }}
             >
-              <span
-                style={{
-                  fontSize: 9,
-                  color: pos.headerMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  fontWeight: 700,
-                }}
-              >
-                Ticket
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 900, color: pos.role, lineHeight: 1.1 }}>
-                {fmt(orderTotal)}
-              </span>
-            </div>
-          )}
+              Total
+            </span>
+            <span style={{ fontSize: 18, fontWeight: 900, color: pos.role, lineHeight: 1.1 }}>
+              {fmt(orderTotal)}
+            </span>
+          </div>
 
           {isManager && (
             <div style={{ display: 'flex', gap: 8 }}>
