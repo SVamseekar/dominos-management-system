@@ -10,6 +10,7 @@ import {
   selectCartLocale,
   selectStoreCountryCode,
   selectDeliveryFeeINR,
+  selectStoreMarketSynced,
 } from '../../../store/slices/cartSlice';
 import { formatMajorAmount } from '../../../utils/currency';
 import { computePreCheckoutTotals, formatTaxDisplay } from '../../../utils/orderTax';
@@ -74,10 +75,12 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
   const currency = useAppSelector(selectCartCurrency);
   const locale = useAppSelector(selectCartLocale);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
+  const storeMarketSynced = useAppSelector(selectStoreMarketSynced);
   const cartDeliveryFee = useAppSelector(selectDeliveryFeeINR);
-  // Explicit DE for Berlin demo when cart has not loaded store yet (null legacy = IN)
-  const paymentCountry = storeCountryCode ?? 'DE';
-  const paymentMethods = paymentMethodsForCountry(paymentCountry);
+  // Market only from cart after setStoreCurrency(store profile). Never invent a country.
+  const paymentMethods = storeMarketSynced
+    ? paymentMethodsForCountry(storeCountryCode)
+    : [];
   const fmt = (v: number) => formatMajorAmount(v, currency, locale);
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -466,7 +469,9 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
     items.length > 0 &&
     !isSubmitting &&
     !phoneError &&
-    !addressError;
+    !addressError &&
+    storeMarketSynced &&
+    paymentMethods.length > 0;
 
   return (
     <div
@@ -1002,6 +1007,22 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
           <PaymentIcon style={{ fontSize: 16, color: pos.role }} />
           Payment method
         </p>
+        {!storeMarketSynced && (
+          <div
+            data-testid="pay-market-loading"
+            style={{
+              padding: '12px 14px',
+              borderRadius: 12,
+              background: pos.infoSoft,
+              border: `1px solid ${pos.info}`,
+              fontSize: 12,
+              color: pos.ink,
+              marginBottom: pos.space[2],
+            }}
+          >
+            Loading store market (currency and payment methods) from store profile…
+          </div>
+        )}
         <div
           style={{
             display: 'grid',
@@ -1044,7 +1065,7 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
               );
             })}
         </div>
-        {paymentMethod === 'CASH' && (
+        {storeMarketSynced && paymentMethod === 'CASH' && (
           <div
             style={{
               padding: '8px 12px',
@@ -1083,9 +1104,11 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
         >
           {isSubmitting
             ? 'Processing…'
-            : items.length === 0
-              ? 'Add items to place order'
-              : `Place order ${fmt(total)} · ${paymentMethod}`}
+            : !storeMarketSynced
+              ? 'Waiting for store market…'
+              : items.length === 0
+                ? 'Add items to place order'
+                : `Place order ${fmt(total)} · ${paymentMethod}`}
         </button>
         <p
           style={{

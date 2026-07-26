@@ -11,11 +11,12 @@ import {
   selectCartLocale,
   selectStoreCountryCode,
   selectDeliveryFeeINR,
+  selectStoreMarketSynced,
 } from '../../store/slices/cartSlice';
 import { formatMajorAmount, apiPriceToCartMajor } from '../../utils/currency';
-import { storeCurrencyPayload } from '../../utils/storeCurrency';
+import { storeCurrencyPayload, resolveStoreMarket } from '../../utils/storeCurrency';
 import { computePreCheckoutTotals } from '../../utils/orderTax';
-import { useGetStoreQuery } from '../../store/api/storeApi';
+import { useGetStoreQuery, useGetActiveStoresQuery } from '../../store/api/storeApi';
 import MenuPanel from './components/MenuPanel';
 import OrderPanel from './components/OrderPanel';
 import CustomerPanel from './components/CustomerPanel';
@@ -75,25 +76,59 @@ const POSDashboard: React.FC = () => {
 
   const selectedStoreId = useAppSelector(selectSelectedStoreId);
   const selectedStoreName = useAppSelector(selectSelectedStoreName);
+  const storeMarketSynced = useAppSelector(selectStoreMarketSynced);
 
   const isManager = user?.type === 'MANAGER';
 
   const urlStoreId = searchParams.get('storeId');
-  const storeId = urlStoreId || selectedStoreId || user?.storeId;
+  // Prefer explicit store; never invent one — resolve from URL → cart → staff JWT → store list
+  const storeId = urlStoreId || selectedStoreId || user?.storeId || undefined;
 
-  const { data: storeProfile } = useGetStoreQuery(storeId ?? '', { skip: !storeId });
+  const { data: storeProfile } = useGetStoreQuery(storeId ?? '', {
+    skip: !storeId,
+  });
+
+  const { data: activeStores = [], isLoading: storesListLoading } = useGetActiveStoresQuery(undefined, {
+    skip: Boolean(storeId),
+  });
+
+  // Bootstrap store selection from staff JWT or single active store (seed often has DOM001 only)
+  useEffect(() => {
+    if (storeId) return;
+    if (user?.storeId) {
+      dispatch(
+        setSelectedStore({
+          storeId: user.storeId,
+          storeName: selectedStoreName || user.storeId,
+        })
+      );
+      return;
+    }
+    if (storesListLoading || !activeStores.length) return;
+    // Only auto-bind when there is exactly one active store (typical single-site seed)
+    const open = activeStores.filter((s) => s.status === 'ACTIVE' || !s.status);
+    if (open.length !== 1) return;
+    dispatch(setSelectedStore({ storeId: open[0].id, storeName: open[0].name }));
+  }, [storeId, user, activeStores, storesListLoading, selectedStoreName, dispatch]);
 
   useEffect(() => {
     if (urlStoreId && urlStoreId !== selectedStoreId) {
-      dispatch(setSelectedStore({ storeId: urlStoreId, storeName: 'Store ' + urlStoreId }));
+      dispatch(setSelectedStore({ storeId: urlStoreId, storeName: selectedStoreName || urlStoreId }));
     }
-  }, [urlStoreId, selectedStoreId, dispatch]);
+  }, [urlStoreId, selectedStoreId, selectedStoreName, dispatch]);
 
+  // Hydrate currency / locale / country only from store API record (no hard-coded market)
   useEffect(() => {
     if (!storeProfile || !storeId) return;
+    const market = resolveStoreMarket(storeProfile);
     dispatch(setSelectedStore({ storeId, storeName: storeProfile.name }));
-    dispatch(setStoreCurrency(storeCurrencyPayload(storeProfile)));
+    if (market.resolved) {
+      dispatch(setStoreCurrency(storeCurrencyPayload(storeProfile)));
+    }
   }, [storeProfile, storeId, dispatch]);
+
+  const storeMarketReady =
+    Boolean(storeId && storeProfile && storeMarketSynced && resolveStoreMarket(storeProfile).resolved);
 
   const [activeTab, setActiveTab] = useState<PosTab>('orders');
   const [clockInModalOpen, setClockInModalOpen] = useState(false);
@@ -483,8 +518,9 @@ const POSDashboard: React.FC = () => {
             <div style={{ fontSize: 12, color: pos.muted, marginTop: 1 }}>
               {dayPart}
               {orderUser || user ? ` · ${staffName.split(' ')[0]}` : ''}
-              {storeCountryCode ? ` · ${storeCountryCode}` : ''}
-              {currency ? ` · ${currency}` : ''}
+              {storeMarketReady && storeCountryCode ? ` · ${storeCountryCode}` : ''}
+              {storeMarketReady && currency ? ` · ${currency}` : ''}
+              {!storeMarketReady && storeId ? ' · …' : ''}
             </div>
           </div>
         </div>
