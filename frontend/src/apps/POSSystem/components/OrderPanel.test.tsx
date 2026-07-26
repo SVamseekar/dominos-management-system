@@ -52,7 +52,7 @@ describe('OrderPanel', () => {
       });
 
       expect(screen.getByTestId('order-panel')).toBeInTheDocument();
-      expect(screen.getByText('Cart')).toBeInTheDocument();
+      expect(screen.getByText('Ticket')).toBeInTheDocument();
     });
 
     it('displays order items', () => {
@@ -91,7 +91,7 @@ describe('OrderPanel', () => {
       });
 
       expect(screen.getByTestId('cart-empty')).toBeInTheDocument();
-      expect(screen.getByText(/Cart is empty/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ticket is empty/i)).toBeInTheDocument();
     });
 
     it('does not show clear button when order is empty', () => {

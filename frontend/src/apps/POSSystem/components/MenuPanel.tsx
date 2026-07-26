@@ -1,7 +1,7 @@
 // src/apps/POSSystem/components/MenuPanel.tsx
 /**
- * POS menu column — dark photo grid, cuisine chips, popular strip.
- * Large touch targets for landscape cashier floor.
+ * Craft menu column — photo grid, icon cuisine rail, popular strip, detail sheet.
+ * Landscape cashier floor (not consumer phone layout).
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -30,10 +30,17 @@ import IcecreamIcon from '@mui/icons-material/Icecream';
 import RamenDiningIcon from '@mui/icons-material/RamenDining';
 import SetMealIcon from '@mui/icons-material/SetMeal';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
-import { pos, posTouchBtnBase } from '../posTokens';
+import {
+  pos,
+  posTouchBtnBase,
+  posPanelHeader,
+  posSectionTitle,
+  posField,
+} from '../posTokens';
+import ItemCustomizeSheet from './ItemCustomizeSheet';
 
 interface MenuPanelProps {
-  onAddItem: (item: MenuItem, quantity?: number) => void;
+  onAddItem: (item: MenuItem, quantity?: number, instructions?: string) => void;
 }
 
 const CUISINE_LABEL: Record<string, string> = {
@@ -48,7 +55,7 @@ const CUISINE_LABEL: Record<string, string> = {
 };
 
 function cuisineIcon(cuisine: Cuisine): React.ReactNode {
-  const sx = { fontSize: 20 };
+  const sx = { fontSize: 22 };
   switch (cuisine) {
     case Cuisine.AMERICAN:
       return <LunchDiningIcon style={sx} />;
@@ -108,16 +115,6 @@ function getCategoriesForCuisine(cuisine: Cuisine): MenuCategory[] {
   return categoryMap[cuisine] || [];
 }
 
-const chipBase: React.CSSProperties = {
-  ...posTouchBtnBase,
-  minHeight: 44,
-  padding: '8px 14px',
-  fontSize: pos.type.fontSize.xs,
-  fontWeight: pos.type.fontWeight.semibold,
-  whiteSpace: 'nowrap',
-  flexShrink: 0,
-};
-
 const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
   const currency = useAppSelector(selectCartCurrency);
   const locale = useAppSelector(selectCartLocale);
@@ -127,6 +124,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   const [selectedDietary, setSelectedDietary] = useState<DietaryType | null>(null);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  const [sheetItem, setSheetItem] = useState<MenuItem | null>(null);
 
   const { data: menuItems = [], isLoading, error, refetch } = useGetAvailableMenuQuery(
     undefined,
@@ -134,9 +132,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
   );
 
   useEffect(() => {
-    if (selectedStoreId) {
-      void refetch();
-    }
+    if (selectedStoreId) void refetch();
   }, [selectedStoreId, refetch]);
 
   const availableCategories = getCategoriesForCuisine(selectedCuisine);
@@ -158,15 +154,14 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           (item: MenuItem) =>
             item.isRecommended && item.isAvailable && item.cuisine === selectedCuisine
         )
-        .slice(0, 6),
+        .slice(0, 8),
     [menuItems, selectedCuisine]
   );
 
-  const handleAdd = (item: MenuItem, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    onAddItem(item);
+  const flashAdd = (item: MenuItem, qty = 1, instructions?: string) => {
+    onAddItem(item, qty, instructions);
     setJustAddedId(item.id);
-    window.setTimeout(() => setJustAddedId((id) => (id === item.id ? null : id)), 280);
+    window.setTimeout(() => setJustAddedId((id) => (id === item.id ? null : id)), 320);
   };
 
   return (
@@ -174,54 +169,42 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
       data-testid="menu-panel"
       style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
     >
-      {/* Sticky filter header */}
-      <div
-        style={{
-          padding: pos.space[3],
-          borderBottom: `1px solid ${pos.border}`,
-          background: `linear-gradient(180deg, ${pos.surfaceElevated} 0%, ${pos.surface} 100%)`,
-          flexShrink: 0,
-        }}
-      >
+      <div style={posPanelHeader}>
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: pos.space[2],
+            alignItems: 'flex-start',
+            marginBottom: 12,
+            gap: 12,
           }}
         >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: pos.type.fontSize.base,
-              fontWeight: pos.type.fontWeight.bold,
-              color: pos.ink,
-              display: 'flex',
-              alignItems: 'center',
-              gap: pos.space[2],
-            }}
-          >
-            <RestaurantMenuIcon style={{ fontSize: 22, color: pos.role }} />
-            Menu
-          </h3>
+          <div>
+            <h3 style={posSectionTitle}>
+              <RestaurantMenuIcon style={{ fontSize: 22, color: pos.role }} />
+              Menu
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: pos.muted }}>
+              Tap photo for details · <span style={{ color: pos.role }}>+</span> to quick-add
+            </p>
+          </div>
           <span
             style={{
-              fontSize: pos.type.fontSize.xs,
-              fontWeight: pos.type.fontWeight.semibold,
+              fontSize: 12,
+              fontWeight: 800,
               background: pos.roleSoft,
               color: pos.role,
-              padding: '4px 10px',
-              borderRadius: pos.radius.full,
+              padding: '8px 12px',
+              borderRadius: 999,
               border: `1px solid ${pos.roleBorder}`,
+              whiteSpace: 'nowrap',
             }}
           >
-            {filteredItems.length} items
+            {filteredItems.length} live
           </span>
         </div>
 
-        {/* Search */}
-        <div style={{ position: 'relative', marginBottom: pos.space[2] }}>
+        <div style={{ position: 'relative', marginBottom: 12 }}>
           <SearchIcon
             style={{
               position: 'absolute',
@@ -235,22 +218,15 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           />
           <input
             type="search"
-            placeholder="Search menu…"
+            placeholder="Search your menu…"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             aria-label="Search menu items"
             style={{
-              width: '100%',
-              minHeight: pos.touchMin,
-              padding: `12px 14px 12px 44px`,
-              border: `1px solid ${pos.border}`,
-              borderRadius: pos.radius.md,
-              outline: 'none',
-              backgroundColor: pos.surfaceAlt,
-              fontSize: pos.type.fontSize.sm,
-              color: pos.ink,
-              fontFamily: pos.font,
-              boxSizing: 'border-box',
+              ...posField,
+              paddingLeft: 44,
+              borderRadius: 999,
+              background: 'rgba(0,0,0,0.4)',
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = pos.role;
@@ -263,14 +239,14 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           />
         </div>
 
-        {/* Cuisine strip with icons */}
+        {/* Icon cuisine rail */}
         <div
           style={{
             display: 'flex',
-            gap: 8,
+            gap: 10,
             overflowX: 'auto',
-            paddingBottom: 6,
-            marginBottom: 6,
+            paddingBottom: 8,
+            marginBottom: 8,
             scrollbarWidth: 'thin',
           }}
         >
@@ -285,28 +261,29 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                   setSelectedCategory(null);
                 }}
                 style={{
-                  ...chipBase,
+                  ...posTouchBtnBase,
                   flexDirection: 'column',
-                  gap: 4,
-                  minWidth: 72,
-                  minHeight: 64,
-                  padding: '8px 10px',
+                  gap: 6,
+                  minWidth: 76,
+                  minHeight: 72,
+                  padding: '10px 8px',
+                  borderRadius: 16,
                   ...(active
                     ? {
-                        background: `linear-gradient(145deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
-                        color: pos.inverse,
-                        boxShadow: `0 4px 14px ${pos.roleShadow}`,
+                        background: `linear-gradient(160deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
+                        color: '#fff',
+                        boxShadow: `0 8px 22px ${pos.roleShadow}`,
                         border: 'none',
                       }
                     : {
-                        background: pos.surfaceElevated,
+                        background: 'rgba(255,255,255,0.04)',
                         color: pos.muted,
                         border: `1px solid ${pos.border}`,
                       }),
                 }}
               >
                 {cuisineIcon(cuisine)}
-                <span style={{ fontSize: 10, lineHeight: 1.15, textAlign: 'center' }}>
+                <span style={{ fontSize: 10, lineHeight: 1.15, textAlign: 'center', fontWeight: 700 }}>
                   {CUISINE_LABEL[cuisine] || cuisine.replace(/_/g, ' ')}
                 </span>
               </button>
@@ -314,27 +291,21 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           })}
         </div>
 
-        {/* Category chips */}
         {availableCategories.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              overflowX: 'auto',
-              paddingBottom: 4,
-              marginBottom: 6,
-            }}
-          >
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 6, marginBottom: 6 }}>
             <button
               type="button"
               onClick={() => setSelectedCategory(null)}
               style={{
-                ...chipBase,
+                ...posTouchBtnBase,
                 minHeight: 36,
+                padding: '6px 14px',
+                borderRadius: 999,
+                fontSize: 12,
                 ...(selectedCategory === null
-                  ? { background: pos.roleDark, color: pos.inverse, border: 'none' }
+                  ? { background: pos.role, color: '#fff', border: 'none' }
                   : {
-                      background: pos.surfaceAlt,
+                      background: 'transparent',
                       color: pos.muted,
                       border: `1px solid ${pos.border}`,
                     }),
@@ -348,12 +319,15 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 type="button"
                 onClick={() => setSelectedCategory(category)}
                 style={{
-                  ...chipBase,
+                  ...posTouchBtnBase,
                   minHeight: 36,
+                  padding: '6px 14px',
+                  borderRadius: 999,
+                  fontSize: 12,
                   ...(selectedCategory === category
-                    ? { background: pos.roleDark, color: pos.inverse, border: 'none' }
+                    ? { background: pos.roleDark, color: '#fff', border: 'none' }
                     : {
-                        background: pos.surfaceAlt,
+                        background: 'transparent',
                         color: pos.muted,
                         border: `1px solid ${pos.border}`,
                       }),
@@ -365,7 +339,6 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           </div>
         )}
 
-        {/* Dietary pills */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {(
             [
@@ -382,9 +355,10 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 type="button"
                 onClick={() => setSelectedDietary(key)}
                 style={{
-                  ...chipBase,
+                  ...posTouchBtnBase,
                   minHeight: 32,
-                  padding: '6px 12px',
+                  padding: '4px 12px',
+                  borderRadius: 999,
                   fontSize: 11,
                   ...(active
                     ? {
@@ -394,11 +368,11 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                             : key === DietaryType.VEGAN
                               ? pos.successDark
                               : pos.success,
-                        color: pos.inverse,
+                        color: '#fff',
                         border: 'none',
                       }
                     : {
-                        background: pos.surfaceAlt,
+                        background: 'rgba(255,255,255,0.03)',
                         color: pos.faint,
                         border: `1px solid ${pos.border}`,
                       }),
@@ -411,36 +385,45 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
         </div>
       </div>
 
-      {/* Popular strip — horizontal photo cards when available */}
+      {/* Popular Now rail */}
       {!searchTerm && selectedCategory === null && popularItems.length > 0 && (
         <div
           style={{
-            padding: `${pos.space[2]} ${pos.space[3]}`,
-            backgroundColor: pos.roleSoft,
-            borderBottom: `1px solid ${pos.roleBorder}`,
+            padding: '12px 16px',
+            borderBottom: `1px solid ${pos.border}`,
+            background: `linear-gradient(90deg, ${pos.roleSoft} 0%, transparent 70%)`,
             flexShrink: 0,
           }}
         >
-          <p
-            style={{
-              margin: `0 0 ${pos.space[2]} 0`,
-              fontSize: 11,
-              fontWeight: pos.type.fontWeight.bold,
-              color: pos.role,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <LocalFireDepartmentIcon style={{ fontSize: 14 }} />
-            Popular — tap to add
-          </p>
           <div
             style={{
               display: 'flex',
-              gap: 10,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 10,
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                fontSize: 12,
+                fontWeight: 800,
+                color: pos.role,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <LocalFireDepartmentIcon style={{ fontSize: 16 }} />
+              Popular now
+            </p>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
               overflowX: 'auto',
               paddingBottom: 4,
               scrollbarWidth: 'thin',
@@ -450,64 +433,77 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => handleAdd(item)}
+                onClick={() => flashAdd(item)}
                 style={{
-                  ...posTouchBtnBase,
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  minWidth: 120,
-                  maxWidth: 140,
-                  minHeight: 48,
-                  padding: 0,
-                  overflow: 'hidden',
-                  background: pos.surfaceElevated,
+                  flex: '0 0 148px',
                   border: `1px solid ${pos.border}`,
-                  borderRadius: pos.radius.md,
-                  color: pos.ink,
+                  borderRadius: 18,
+                  overflow: 'hidden',
+                  padding: 0,
+                  background: pos.surfaceAlt,
+                  cursor: 'pointer',
+                  textAlign: 'left',
                   boxShadow: pos.shadow.soft,
+                  fontFamily: pos.font,
                 }}
               >
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt=""
+                <div style={{ height: 88, position: 'relative', background: pos.surfaceElevated }}>
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 28,
+                        fontWeight: 800,
+                        color: pos.role,
+                      }}
+                    >
+                      {item.name.charAt(0)}
+                    </div>
+                  )}
+                  <span
                     style={{
-                      width: '100%',
-                      height: 64,
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      height: 48,
-                      background: `linear-gradient(135deg, ${pos.roleSoft}, ${pos.surfaceAlt})`,
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      background: pos.role,
+                      color: '#fff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 18,
-                      fontWeight: 800,
-                      color: pos.role,
+                      fontWeight: 900,
+                      fontSize: 20,
+                      boxShadow: `0 4px 12px ${pos.roleShadow}`,
                     }}
                   >
-                    {item.name.charAt(0)}
-                  </div>
-                )}
-                <div style={{ padding: '8px 10px', textAlign: 'left' }}>
+                    +
+                  </span>
+                </div>
+                <div style={{ padding: '10px 12px' }}>
                   <div
                     style={{
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 700,
-                      lineHeight: 1.2,
+                      color: pos.ink,
+                      whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
                     }}
                   >
                     {item.name}
                   </div>
-                  <div style={{ fontSize: 11, color: pos.role, fontWeight: 700, marginTop: 2 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: pos.role, marginTop: 2 }}>
                     {formatMoney(item.basePrice, currency, locale)}
                   </div>
                 </div>
@@ -517,14 +513,13 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
         </div>
       )}
 
-      {/* Grid */}
       <div
         style={{
           flex: 1,
           overflow: 'auto',
-          padding: pos.space[3],
+          padding: 14,
           minHeight: 0,
-          background: pos.surfaceBg,
+          background: 'rgba(0,0,0,0.2)',
         }}
       >
         {isLoading && (
@@ -532,16 +527,16 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
             data-testid="menu-loading"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-              gap: 12,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+              gap: 14,
             }}
           >
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
                 style={{
-                  height: 168,
-                  borderRadius: pos.radius.md,
+                  height: 200,
+                  borderRadius: 18,
                   background: pos.surfaceElevated,
                   border: `1px solid ${pos.border}`,
                   animation: 'posMenuPulse 1.4s ease-in-out infinite',
@@ -552,7 +547,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
             <style>{`
               @keyframes posMenuPulse {
                 0%, 100% { opacity: 1; }
-                50% { opacity: 0.45; }
+                50% { opacity: 0.4; }
               }
             `}</style>
           </div>
@@ -562,17 +557,15 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <div
             data-testid="menu-error"
             style={{
-              padding: pos.space[6],
-              borderRadius: pos.radius.lg,
+              padding: 28,
+              borderRadius: 18,
               border: `1px solid ${pos.error}`,
               background: pos.errorSoft,
               textAlign: 'center',
             }}
           >
-            <p style={{ margin: `0 0 ${pos.space[3]} 0`, color: pos.ink, fontWeight: 600 }}>
-              Couldn’t load menu
-            </p>
-            <p style={{ margin: `0 0 ${pos.space[4]} 0`, color: pos.muted, fontSize: 13 }}>
+            <p style={{ margin: '0 0 8px', color: pos.ink, fontWeight: 700 }}>Couldn’t load menu</p>
+            <p style={{ margin: '0 0 16px', color: pos.muted, fontSize: 13 }}>
               Check network or store selection, then retry.
             </p>
             <button
@@ -581,7 +574,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
               style={{
                 ...posTouchBtnBase,
                 background: pos.role,
-                color: pos.inverse,
+                color: '#fff',
+                borderRadius: 999,
               }}
             >
               <RefreshIcon style={{ fontSize: 18 }} />
@@ -594,16 +588,16 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <div
             data-testid="menu-empty"
             style={{
-              padding: pos.space[8],
-              borderRadius: pos.radius.lg,
+              padding: 40,
+              borderRadius: 18,
               border: `1px dashed ${pos.border}`,
               background: pos.surface,
               textAlign: 'center',
               color: pos.muted,
             }}
           >
-            <RestaurantMenuIcon style={{ fontSize: 40, color: pos.faint, marginBottom: 12 }} />
-            <div style={{ fontWeight: 600, color: pos.ink, marginBottom: 6 }}>
+            <RestaurantMenuIcon style={{ fontSize: 44, color: pos.faint, marginBottom: 12 }} />
+            <div style={{ fontWeight: 700, color: pos.ink, marginBottom: 6 }}>
               {searchTerm ? 'No matches' : 'No items match'}
             </div>
             <div style={{ fontSize: 13 }}>
@@ -618,8 +612,8 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-              gap: 12,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+              gap: 14,
             }}
           >
             {filteredItems.map((item: MenuItem) => {
@@ -628,75 +622,49 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                 <div
                   key={item.id}
                   data-testid={`menu-item-${item.id}`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleAdd(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleAdd(item);
-                    }
-                  }}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'stretch',
-                    textAlign: 'left',
-                    minHeight: 168,
-                    padding: 0,
+                    borderRadius: 18,
                     overflow: 'hidden',
-                    borderRadius: pos.radius.md,
                     border: flash ? `2px solid ${pos.success}` : `1px solid ${pos.border}`,
                     background: flash ? pos.successSoft : pos.surface,
-                    cursor: 'pointer',
                     boxShadow: pos.shadow.raised.sm,
-                    transition:
-                      'transform 0.12s ease, border-color 0.12s ease, background 0.12s ease',
-                    fontFamily: pos.font,
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = pos.role;
-                    e.currentTarget.style.transform = 'scale(0.98)';
-                    e.currentTarget.style.boxShadow = `0 8px 20px ${pos.roleShadow}`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = flash ? pos.success : pos.border;
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = pos.shadow.raised.sm as string;
+                    transition: 'transform 0.12s ease, box-shadow 0.12s ease',
+                    minHeight: 210,
                   }}
                 >
-                  {/* Image / placeholder */}
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => setSheetItem(item)}
                     style={{
-                      height: 88,
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
                       background: pos.surfaceAlt,
+                      height: 110,
                       position: 'relative',
-                      overflow: 'hidden',
+                      display: 'block',
+                      width: '100%',
                     }}
+                    aria-label={`Details for ${item.name}`}
                   >
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
                         alt=""
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block',
-                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
                     ) : (
                       <div
                         style={{
-                          width: '100%',
                           height: '100%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           background: `linear-gradient(145deg, ${pos.surfaceElevated}, ${pos.surfaceAlt})`,
-                          fontSize: 28,
-                          fontWeight: 800,
+                          fontSize: 36,
+                          fontWeight: 900,
                           color: pos.faint,
                         }}
                       >
@@ -711,20 +679,28 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                           left: 8,
                           fontSize: 9,
                           fontWeight: 800,
-                          padding: '3px 6px',
-                          borderRadius: 6,
+                          padding: '4px 8px',
+                          borderRadius: 8,
                           background: pos.role,
-                          color: pos.inverse,
+                          color: '#fff',
                           textTransform: 'uppercase',
                         }}
                       >
                         Hot
                       </span>
                     )}
-                  </div>
+                  </button>
 
-                  <div style={{ padding: 10, display: 1, display: 'flex', flexDirection: 'column' }}>
-                    <span
+                  <div
+                    style={{
+                      padding: 12,
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                    }}
+                  >
+                    <div
                       style={{
                         fontSize: 13,
                         fontWeight: 700,
@@ -734,20 +710,19 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
-                        minHeight: '2.5em',
-                        marginBottom: 6,
+                        minHeight: '2.4em',
                       }}
                     >
                       {item.name}
-                    </span>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {item.dietaryInfo?.includes(DietaryType.VEGETARIAN) && (
                         <span
                           style={{
                             fontSize: 9,
-                            fontWeight: 700,
-                            padding: '2px 5px',
-                            borderRadius: 4,
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: 6,
                             background: pos.successSoft,
                             color: pos.successDark,
                           }}
@@ -759,9 +734,9 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                         <span
                           style={{
                             fontSize: 9,
-                            fontWeight: 700,
-                            padding: '2px 5px',
-                            borderRadius: 4,
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: 6,
                             background: pos.errorSoft,
                             color: pos.errorDark,
                           }}
@@ -779,36 +754,24 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                         gap: 8,
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: 15,
-                          fontWeight: 800,
-                          color: pos.role,
-                        }}
-                      >
+                      <span style={{ fontSize: 16, fontWeight: 900, color: pos.role }}>
                         {formatMoney(item.basePrice, currency, locale)}
                       </span>
                       <button
                         type="button"
                         aria-label={`Add ${item.name}`}
-                        onClick={(e) => handleAdd(item, e)}
+                        onClick={() => flashAdd(item)}
                         style={{
                           width: 48,
                           height: 48,
-                          minWidth: 48,
-                          minHeight: 48,
-                          borderRadius: pos.radius.full,
-                          background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
-                          color: pos.inverse,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 800,
-                          fontSize: 22,
-                          lineHeight: 1,
+                          borderRadius: '50%',
                           border: 'none',
+                          background: `linear-gradient(145deg, ${pos.role}, ${pos.roleDark})`,
+                          color: '#fff',
+                          fontSize: 24,
+                          fontWeight: 900,
                           cursor: 'pointer',
-                          boxShadow: `0 4px 12px ${pos.roleShadow}`,
+                          boxShadow: `0 6px 16px ${pos.roleShadow}`,
                           flexShrink: 0,
                         }}
                       >
@@ -822,6 +785,13 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
           </div>
         )}
       </div>
+
+      <ItemCustomizeSheet
+        item={sheetItem}
+        open={!!sheetItem}
+        onClose={() => setSheetItem(null)}
+        onAdd={(item, quantity, instructions) => flashAdd(item, quantity, instructions)}
+      />
     </div>
   );
 };

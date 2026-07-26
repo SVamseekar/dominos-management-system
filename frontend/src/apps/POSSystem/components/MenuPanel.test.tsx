@@ -65,7 +65,7 @@ describe('MenuPanel', () => {
       });
 
       expect(
-        screen.getByPlaceholderText('Search menu…')
+        screen.getByPlaceholderText('Search your menu…')
       ).toBeInTheDocument();
     });
 
@@ -98,7 +98,7 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      expect(screen.getByText(/items$/)).toBeInTheDocument();
+      expect(screen.getByText(/live$/)).toBeInTheDocument();
     });
   });
 
@@ -188,7 +188,7 @@ describe('MenuPanel', () => {
 
       // Switch to Italian to see Pizza
       await user.click(screen.getByText('Italian'));
-      const searchInput = screen.getByPlaceholderText('Search menu…');
+      const searchInput = screen.getByPlaceholderText('Search your menu…');
       await user.type(searchInput, 'Margherita');
 
       expect(screen.getAllByText('Margherita Pizza').length).toBeGreaterThan(0);
@@ -202,7 +202,7 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      const searchInput = screen.getByPlaceholderText('Search menu…');
+      const searchInput = screen.getByPlaceholderText('Search your menu…');
       await user.type(searchInput, 'xyznonexistent');
 
       expect(screen.getByText(/No matches/i)).toBeInTheDocument();
@@ -218,10 +218,11 @@ describe('MenuPanel', () => {
         preloadedState: defaultCartState,
       });
 
-      // Prefer grid tile (data-testid) over popular chip
+      // Orange + button on grid card quick-adds
       const tile = screen.getByTestId('menu-item-item-4');
-      expect(tile).toBeTruthy();
-      await user.click(tile);
+      const addBtn = tile.querySelector('button[aria-label^="Add "]');
+      expect(addBtn).toBeTruthy();
+      await user.click(addBtn!);
 
       expect(mockOnAddItem).toHaveBeenCalledTimes(1);
     });

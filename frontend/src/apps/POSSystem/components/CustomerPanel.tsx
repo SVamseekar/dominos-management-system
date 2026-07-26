@@ -29,7 +29,15 @@ import {
   paymentMethodsForCountry,
   type PaymentMethodCode,
 } from '../../../utils/paymentMethods';
-import { pos, posTouchBtnBase } from '../posTokens';
+import {
+  pos,
+  posTouchBtnBase,
+  posPanelHeader,
+  posSectionTitle,
+  posField,
+  posLabel,
+  posTouchBtnPrimary,
+} from '../posTokens';
 import { resolvePosDeliveryFee } from '../posHelpers';
 
 interface CustomerPanelProps {
@@ -465,133 +473,110 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
       data-testid="customer-panel"
       style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
     >
-      {/* Header */}
-      <div
-        style={{
-          padding: pos.space[3],
-          borderBottom: `2px solid ${pos.border}`,
-          background: `linear-gradient(180deg, ${pos.surface} 0%, ${pos.surfaceAlt} 100%)`,
-          flexShrink: 0,
-        }}
-      >
-        <h3
-          style={{
-            margin: 0,
-            fontSize: pos.type.fontSize.base,
-            fontWeight: pos.type.fontWeight.bold,
-            color: pos.ink,
-            display: 'flex',
-            alignItems: 'center',
-            gap: pos.space[2],
-          }}
-        >
-          <PaymentIcon style={{ fontSize: 22, color: pos.role }} />
-          Pay
+      <div style={{ ...posPanelHeader, borderTop: `3px solid ${pos.role}` }}>
+        <h3 style={{ ...posSectionTitle, justifyContent: 'space-between', width: '100%' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <PaymentIcon style={{ fontSize: 22, color: pos.role }} />
+            Pay
+          </span>
           <span
             style={{
-              marginLeft: 'auto',
-              fontSize: 12,
-              fontWeight: 700,
-              color: pos.roleDark,
+              fontSize: 15,
+              fontWeight: 900,
+              color: pos.role,
               background: pos.roleSoft,
-              padding: '4px 10px',
-              borderRadius: pos.radius.full,
+              padding: '8px 14px',
+              borderRadius: 999,
+              border: `1px solid ${pos.roleBorder}`,
             }}
           >
             {items.length > 0 ? fmt(total) : '—'}
           </span>
         </h3>
+        <p style={{ margin: '6px 0 0', fontSize: 12, color: pos.muted }}>
+          Guest details · payment · place order
+        </p>
       </div>
 
-      {/* Scrollable form (customer + delivery) */}
+      {/* Scrollable form */}
       <div
         style={{
           flex: 1,
           overflow: 'auto',
-          padding: pos.space[3],
+          padding: 14,
           minHeight: 0,
-          background: pos.surfaceBg,
+          background: 'rgba(0,0,0,0.18)',
         }}
       >
-        {/* Customer Information */}
-        <div style={{
-            marginBottom: pos.space[4],
-            padding: pos.space[4],
-            borderRadius: pos.radius.lg,
-            backgroundColor: pos.surface,
+        {/* Step 1 — Customer */}
+        <div
+          style={{
+            marginBottom: 14,
+            padding: 16,
+            borderRadius: 18,
+            background: `linear-gradient(165deg, ${pos.surfaceElevated}, ${pos.surface})`,
             border: `1px solid ${pos.border}`,
             boxShadow: pos.shadow.raised.sm,
           }}
         >
-          <p style={{
-            margin: `0 0 ${pos.space[4]} 0`,
-            fontSize: pos.type.fontSize.sm,
-            fontWeight: pos.type.fontWeight.bold,
-            color: pos.ink
-          }}>
-            <AssignmentIcon style={{ fontSize: '16px', marginRight: '6px', verticalAlign: 'middle' }} />
-            Customer Information
+          <p style={{ ...posSectionTitle, marginBottom: 14, fontSize: 13 }}>
+            <span
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 8,
+                background: pos.roleSoft,
+                color: pos.role,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                fontWeight: 900,
+              }}
+            >
+              1
+            </span>
+            <AssignmentIcon style={{ fontSize: 18, color: pos.role }} />
+            Guest
           </p>
+          <label style={posLabel}>Name</label>
 
           <input
             type="text"
-            placeholder="Customer Name (optional for walk-in)"
+            placeholder="Walk-in or guest name"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
-            style={{
-              width: '100%',
-              minHeight: pos.touchMin,
-              padding: pos.space[3],
-              marginBottom: pos.space[3],
-              border: `2px solid ${pos.border}`,
-              borderRadius: '10px',
-              outline: 'none',
-              backgroundColor: pos.surfaceElevated,
-              boxSizing: 'border-box',
-              fontSize: pos.type.fontSize.sm,
-              color: pos.ink,
-              fontFamily: pos.font,
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
-              transition: 'all 0.2s ease'
-            }}
+            style={{ ...posField, marginBottom: 12 }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = pos.role;
               e.currentTarget.style.boxShadow = `0 0 0 3px ${pos.roleSoft}`;
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = pos.border;
-              e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           />
 
+          <label style={posLabel}>Phone {orderType === 'DELIVERY' ? '(required)' : ''}</label>
           <input
             type="tel"
-            placeholder={`Phone Number ${orderType === 'DELIVERY' ? '(required)' : ''}`}
+            placeholder="Mobile number"
             value={customerPhone}
             onChange={(e) => handlePhoneChange(e.target.value)}
             style={{
-              width: '100%',
-              padding: pos.space[3],
-              marginBottom: phoneError ? pos.space[1] : pos.space[3],
-              border: `2px solid ${phoneError ? pos.error : pos.border}`,
-              borderRadius: '10px',
-              outline: 'none',
-              backgroundColor: pos.surfaceElevated,
-              fontSize: pos.type.fontSize.sm,
-              color: pos.ink,
-              fontFamily: pos.font,
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)',
-              transition: 'all 0.2s ease'
+              ...posField,
+              marginBottom: phoneError ? 4 : 12,
+              borderColor: phoneError ? pos.error : pos.border,
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = phoneError ? pos.error : pos.role;
               e.currentTarget.style.boxShadow = phoneError
-                ? `0 0 0 3px ${pos.error}22`
+                ? `0 0 0 3px ${pos.errorSoft}`
                 : `0 0 0 3px ${pos.roleSoft}`;
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = phoneError ? pos.error : pos.border;
-              e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.35)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           />
           {phoneError && (
@@ -837,21 +822,28 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
 
         {/* Order Source — Global-6 */}
         <div style={{
-            marginBottom: pos.space[4],
-            padding: pos.space[4],
-            borderRadius: pos.radius.lg,
-            backgroundColor: pos.surface,
+            marginBottom: 14,
+            padding: 16,
+            borderRadius: 18,
+            background: `linear-gradient(165deg, ${pos.surfaceElevated}, ${pos.surface})`,
             border: `1px solid ${pos.border}`,
             boxShadow: pos.shadow.raised.sm,
           }}
         >
           <p style={{
-            margin: `0 0 ${pos.space[3]} 0`,
-            fontSize: pos.type.fontSize.sm,
-            fontWeight: pos.type.fontWeight.bold,
-            color: pos.ink
+            margin: '0 0 12px 0',
+            fontSize: 13,
+            fontWeight: 800,
+            color: pos.ink,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
           }}>
-            Order Source
+            <span style={{
+              width: 24, height: 24, borderRadius: 8, background: pos.roleSoft, color: pos.role,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900,
+            }}>2</span>
+            Order source
           </p>
           <select
             value={orderSource}
@@ -906,8 +898,8 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
               marginBottom: pos.space[3],
               padding: pos.space[3],
               borderRadius: pos.radius.md,
-              background: pos.successSoft,
-              border: `1px solid ${pos.success}`,
+              background: pos.roleSoft,
+              border: `1px solid ${pos.roleBorder}`,
             }}
           >
             <div
@@ -958,7 +950,7 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
               }}
             >
               <span style={{ fontWeight: 800, color: pos.ink }}>Total</span>
-              <span style={{ fontWeight: 800, fontSize: 18, color: pos.successDark }}>{fmt(total)}</span>
+              <span style={{ fontWeight: 800, fontSize: 18, color: pos.role }}>{fmt(total)}</span>
             </div>
           </div>
         )}
@@ -978,20 +970,20 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
             }}
           >
             <WarningAmberIcon style={{ fontSize: 28, color: pos.warning, display: 'block', margin: '0 auto 8px' }} />
-            Add items from the menu, then choose payment and charge.
+            Build the ticket first — then pay here.
           </div>
         )}
       </div>
 
-      {/* Sticky pay dock — always visible like Toast / Square */}
+      {/* Sticky pay dock */}
       <div
         data-testid="pos-pay-dock"
         style={{
           flexShrink: 0,
-          padding: pos.space[3],
-          borderTop: `2px solid ${pos.border}`,
-          background: pos.surface,
-          boxShadow: '0 -8px 24px rgba(0,0,0,0.08)',
+          padding: 14,
+          borderTop: `1px solid ${pos.border}`,
+          background: `linear-gradient(180deg, ${pos.surfaceElevated} 0%, ${pos.surface} 100%)`,
+          boxShadow: '0 -16px 40px rgba(0,0,0,0.45)',
         }}
       >
         <p
@@ -1073,7 +1065,7 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
           onClick={handlePlaceOrderClick}
           disabled={!canSubmit}
           style={{
-            ...posTouchBtnBase,
+            ...posTouchBtnPrimary,
             width: '100%',
             minHeight: 56,
             fontSize: 17,
@@ -1084,8 +1076,9 @@ const CustomerPanel: React.FC<CustomerPanelProps> = ({
             background: canSubmit
               ? `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`
               : pos.surfaceElevated,
-            boxShadow: canSubmit ? `0 8px 20px ${pos.roleShadow}` : 'none',
+            boxShadow: canSubmit ? `0 10px 28px ${pos.roleShadow}` : 'none',
             opacity: canSubmit ? 1 : 0.7,
+            borderRadius: 999,
           }}
         >
           {isSubmitting

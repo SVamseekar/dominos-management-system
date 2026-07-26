@@ -1,7 +1,7 @@
 /**
- * POS dark-premium tokens — staff landscape surface.
- * Accent = warm orange (Pinterest craft ref). Cashier blue #2196F3 retired for POS chrome.
- * Do not import manager-tokens or customer --dp-* here.
+ * POS dark-premium craft system — staff landscape surface.
+ * Layout + glass chrome + orange energy (Pinterest craft ref).
+ * Not a consumer phone app; keep 3-column cashier workflow.
  */
 import type { CSSProperties } from 'react';
 import { spacing, typography, borderRadius } from '../../styles/design-tokens';
@@ -16,7 +16,6 @@ export const pos = {
   roleShadow: 'rgba(249, 115, 22, 0.35)',
   roleDark: '#ea580c',
 
-  /** Aliases for design-spec accent naming */
   accent: CASHIER_ROLE,
   accentSoft: 'rgba(249, 115, 22, 0.15)',
   accentDark: '#ea580c',
@@ -26,10 +25,10 @@ export const pos = {
   surfaceElevated: '#22252f',
   surfaceBg: '#0c0d10',
   border: 'rgba(255,255,255,0.08)',
+  borderStrong: 'rgba(255,255,255,0.14)',
   ink: '#f5f5f7',
   muted: '#9ca3af',
   faint: '#6b7280',
-  /** Text / icon on solid accent & success buttons */
   inverse: '#ffffff',
 
   brand: '#e53e3e',
@@ -48,14 +47,17 @@ export const pos = {
   infoDark: '#93c5fd',
   infoSoft: 'rgba(96, 165, 250, 0.15)',
 
-  headerBg: '#0a0b0e',
+  headerBg: 'rgba(10, 11, 14, 0.92)',
   headerBgAlt: '#16181f',
   headerMuted: '#94a3b8',
+
+  glass: 'rgba(26, 28, 36, 0.72)',
+  glassBorder: 'rgba(255,255,255,0.1)',
+  glow: 'radial-gradient(ellipse 80% 50% at 20% -10%, rgba(249,115,22,0.18), transparent 55%), radial-gradient(ellipse 60% 40% at 90% 10%, rgba(234,88,12,0.08), transparent 50%)',
 
   font: typography.fontFamily.primary,
   mono: typography.fontFamily.mono,
 
-  /** Minimum touch target for cashier floor (plan: ≥48px) */
   touchMin: 48,
 
   radius: {
@@ -74,32 +76,33 @@ export const pos = {
       lg: '0 16px 48px rgba(0,0,0,0.55)',
     },
     soft: '0 2px 8px rgba(0,0,0,0.25)',
-    inset: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+    inset: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+    glow: `0 0 40px rgba(249,115,22,0.12)`,
   },
   type: typography,
 } as const;
 
 export type PosTokens = typeof pos;
 
-/** Shared dense panel chrome for menu / cart / pay columns */
+/** Glass column shell — menu / cart / pay */
 export const posPanelShell: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
-  borderRadius: pos.radius.lg,
-  backgroundColor: pos.surface,
-  boxShadow: pos.shadow.raised.sm,
-  border: `1px solid ${pos.border}`,
+  borderRadius: 20,
+  background: `linear-gradient(165deg, ${pos.surfaceElevated} 0%, ${pos.surface} 48%, ${pos.surfaceAlt} 100%)`,
+  boxShadow: `${pos.shadow.raised.md}, ${pos.shadow.inset}`,
+  border: `1px solid ${pos.glassBorder}`,
   boxSizing: 'border-box',
   minWidth: 0,
+  backdropFilter: 'blur(12px)',
 };
 
-/** Touch-friendly button base for POS operators */
 export const posTouchBtnBase: CSSProperties = {
   minHeight: pos.touchMin,
   minWidth: pos.touchMin,
   border: 'none',
-  borderRadius: pos.radius.md,
+  borderRadius: 14,
   fontFamily: pos.font,
   fontWeight: pos.type.fontWeight.bold,
   fontSize: pos.type.fontSize.sm,
@@ -116,14 +119,16 @@ export const posTouchBtnPrimary: CSSProperties = {
   ...posTouchBtnBase,
   background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
   color: '#ffffff',
-  boxShadow: `0 4px 14px ${pos.roleShadow}`,
+  boxShadow: `0 6px 20px ${pos.roleShadow}`,
+  borderRadius: 999,
 };
 
 export const posTouchBtnGhost: CSSProperties = {
   ...posTouchBtnBase,
-  background: pos.surfaceElevated,
+  background: 'rgba(255,255,255,0.04)',
   color: pos.ink,
   border: `1px solid ${pos.border}`,
+  borderRadius: 14,
 };
 
 export const posTouchBtnDanger: CSSProperties = {
@@ -131,4 +136,64 @@ export const posTouchBtnDanger: CSSProperties = {
   background: pos.errorSoft,
   color: pos.errorDark,
   border: `1px solid ${pos.error}`,
+  borderRadius: 14,
+};
+
+/** Shared dark field for POS forms */
+export const posField: CSSProperties = {
+  width: '100%',
+  minHeight: pos.touchMin,
+  padding: '12px 14px',
+  border: `1px solid ${pos.border}`,
+  borderRadius: 14,
+  outline: 'none',
+  backgroundColor: 'rgba(0,0,0,0.35)',
+  fontSize: 14,
+  color: pos.ink,
+  fontFamily: pos.font,
+  boxSizing: 'border-box',
+  transition: 'border-color 0.12s ease, box-shadow 0.12s ease',
+};
+
+export const posFieldFocus = {
+  borderColor: pos.role,
+  boxShadow: `0 0 0 3px ${pos.roleSoft}`,
+} as const;
+
+export const posLabel: CSSProperties = {
+  display: 'block',
+  marginBottom: 6,
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: pos.muted,
+};
+
+export const posSectionTitle: CSSProperties = {
+  margin: 0,
+  fontSize: 15,
+  fontWeight: 800,
+  color: pos.ink,
+  letterSpacing: '-0.02em',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+};
+
+export const posPanelHeader: CSSProperties = {
+  padding: '14px 16px',
+  borderBottom: `1px solid ${pos.border}`,
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)',
+  flexShrink: 0,
+};
+
+export const posAmbientRoot: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100vh',
+  backgroundColor: pos.surfaceBg,
+  backgroundImage: pos.glow,
+  fontFamily: pos.font,
+  color: pos.ink,
 };

@@ -46,7 +46,7 @@ import { getRtkErrorMessage } from '../shared/rtkError';
 import { useRecordCashPaymentMutation } from '../../store/api/paymentApi';
 import { useGetActiveStoreSessionsQuery } from '../../store/api/sessionApi';
 import { useSnackbar } from 'notistack';
-import { pos, posPanelShell, posTouchBtnBase } from './posTokens';
+import { pos, posPanelShell, posTouchBtnBase, posAmbientRoot, posTouchBtnPrimary } from './posTokens';
 import {
   POS_TABS,
   type PosTab,
@@ -222,10 +222,10 @@ const POSDashboard: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [activeTab, handleNewOrder]);
 
-  const handleAddItem = (item: MenuItem, quantity: number = 1) => {
+  const handleAddItem = (item: MenuItem, quantity: number = 1, instructions?: string) => {
     const existingIndex = orderItems.findIndex((orderItem) => orderItem.menuItemId === item.id);
 
-    if (existingIndex >= 0) {
+    if (existingIndex >= 0 && !instructions) {
       const updatedItems = [...orderItems];
       updatedItems[existingIndex].quantity += quantity;
       setOrderItems(updatedItems);
@@ -237,7 +237,7 @@ const POSDashboard: React.FC = () => {
           name: item.name,
           price: apiPriceToCartMajor(item.basePrice, currency),
           quantity,
-          specialInstructions: '',
+          specialInstructions: instructions || '',
           image: item.imageUrl,
           allergens: item.allergens ?? [],
         },
@@ -394,86 +394,116 @@ const POSDashboard: React.FC = () => {
     </div>
   );
 
+  const hour = new Date().getHours();
+  const dayPart =
+    hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const staffName = orderUser?.name || user?.name || 'Cashier';
+
   return (
-    <div
-      data-testid="pos-root"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        backgroundColor: pos.surfaceBg,
-        fontFamily: pos.font,
-      }}
-    >
+    <div data-testid="pos-root" style={posAmbientRoot}>
       <style>{`
         @keyframes posPulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.45; }
         }
+        @media (max-width: 1100px) {
+          [data-testid="pos-orders-board"] > div {
+            flex-direction: column !important;
+          }
+          [data-testid="pos-menu-column"],
+          [data-testid="pos-cart-column"],
+          [data-testid="pos-pay-column"] {
+            flex: 1 1 auto !important;
+            min-height: 320px !important;
+          }
+        }
       `}</style>
 
-      {/* Header */}
+      {/* Craft header */}
       <header
         data-testid="pos-header"
         style={{
-          minHeight: 64,
-          backgroundColor: pos.headerBg,
-          borderBottom: `3px solid ${pos.role}`,
+          minHeight: 72,
+          background: pos.headerBg,
+          backdropFilter: 'blur(16px)',
+          borderBottom: `1px solid ${pos.border}`,
+          boxShadow: `0 1px 0 ${pos.role}55, 0 12px 40px rgba(0,0,0,0.35)`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: `0 ${pos.space[4]}`,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          padding: '10px 20px',
           flexShrink: 0,
-          gap: pos.space[3],
+          gap: 16,
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: pos.space[3] }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
           <div
             style={{
-              fontSize: pos.type.fontSize.xl,
-              fontWeight: pos.type.fontWeight.extrabold,
-              color: pos.ink,
-              letterSpacing: '-0.3px',
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              background: `linear-gradient(145deg, ${pos.role}, ${pos.roleDark})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 900,
+              fontSize: 16,
+              color: '#fff',
+              boxShadow: `0 6px 18px ${pos.roleShadow}`,
+              flexShrink: 0,
             }}
           >
-            MaSoVa{' '}
-            <span style={{ color: pos.role }}>POS</span>
+            M
           </div>
-          <div
-            style={{
-              height: 28,
-              width: 1,
-              backgroundColor: 'rgba(255,255,255,0.12)',
-            }}
-          />
-          <div
-            data-testid="pos-store-label"
-            style={{
-              fontSize: pos.type.fontSize.sm,
-              color: pos.headerMuted,
-              fontWeight: pos.type.fontWeight.semibold,
-            }}
-          >
-            {selectedStoreName || storeId || 'Point of Sale'}
-            {storeCountryCode ? (
-              <span style={{ marginLeft: 8, color: pos.role, fontSize: pos.type.fontSize.xs }}>
-                {storeCountryCode} · {currency}
-              </span>
-            ) : null}
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: pos.headerMuted,
+              }}
+            >
+              MaSoVa <span style={{ color: pos.role }}>POS</span>
+            </div>
+            <div
+              data-testid="pos-store-label"
+              style={{
+                fontSize: 18,
+                fontWeight: 800,
+                color: pos.ink,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {dayPart}
+              {orderUser || user ? (
+                <>
+                  , <span style={{ color: pos.role }}>{staffName.split(' ')[0]}</span>
+                </>
+              ) : null}
+            </div>
+            <div style={{ fontSize: 12, color: pos.muted, marginTop: 1 }}>
+              {selectedStoreName || storeId || 'Point of Sale'}
+              {storeCountryCode ? ` · ${storeCountryCode} · ${currency}` : ''}
+            </div>
           </div>
         </div>
 
-        {/* Tabs — all cashier roles */}
         <nav
           data-testid="pos-tab-bar"
           style={{
             display: 'flex',
             gap: 4,
-            backgroundColor: pos.headerBgAlt,
-            padding: 4,
-            borderRadius: pos.radius.md,
+            background: 'rgba(255,255,255,0.04)',
+            padding: 5,
+            borderRadius: 999,
+            border: `1px solid ${pos.border}`,
           }}
           aria-label="POS sections"
         >
@@ -485,15 +515,16 @@ const POSDashboard: React.FC = () => {
               onClick={() => setActiveTab(tab.key)}
               style={{
                 ...posTouchBtnBase,
-                minHeight: 44,
-                padding: `${pos.space[2]} ${pos.space[4]}`,
-                borderRadius: pos.radius.sm,
-                fontSize: pos.type.fontSize.sm,
+                minHeight: 42,
+                padding: '8px 18px',
+                borderRadius: 999,
+                fontSize: 13,
+                gap: 6,
                 ...(activeTab === tab.key
                   ? {
                       background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
                       color: '#ffffff',
-                      boxShadow: `0 4px 12px ${pos.roleShadow}`,
+                      boxShadow: `0 4px 16px ${pos.roleShadow}`,
                     }
                   : {
                       background: 'transparent',
@@ -505,8 +536,9 @@ const POSDashboard: React.FC = () => {
               <span
                 style={{
                   fontSize: 10,
-                  opacity: 0.7,
-                  fontWeight: pos.type.fontWeight.medium,
+                  opacity: activeTab === tab.key ? 0.9 : 0.55,
+                  fontWeight: 600,
+                  fontFamily: pos.mono,
                 }}
               >
                 {tab.shortcut}
@@ -515,51 +547,53 @@ const POSDashboard: React.FC = () => {
           ))}
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: pos.space[3], flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {orderUser && (
             <div
               data-testid="pos-order-user"
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: pos.space[2],
-                padding: `${pos.space[2]} ${pos.space[3]}`,
-                backgroundColor: pos.headerBgAlt,
-                borderRadius: pos.radius.md,
-                border: `2px solid ${pos.success}`,
+                gap: 10,
+                padding: '8px 14px',
+                background: 'rgba(16,185,129,0.12)',
+                borderRadius: 999,
+                border: `1px solid ${pos.success}66`,
                 minHeight: pos.touchMin,
               }}
             >
               <div
                 style={{
-                  width: 8,
-                  height: 8,
+                  width: 10,
+                  height: 10,
                   borderRadius: '50%',
                   backgroundColor: pos.success,
+                  boxShadow: `0 0 10px ${pos.success}`,
                 }}
               />
               <div>
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 9,
                     color: pos.headerMuted,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
+                    letterSpacing: '0.06em',
+                    fontWeight: 700,
                   }}
                 >
-                  Taking Order
+                  Taking order
                 </div>
-                <div
-                  style={{
-                    fontSize: pos.type.fontSize.sm,
-                    color: pos.success,
-                    fontWeight: pos.type.fontWeight.bold,
-                  }}
-                >
+                <div style={{ fontSize: 13, color: pos.successDark, fontWeight: 800 }}>
                   {orderUser.name}
                 </div>
               </div>
             </div>
+          )}
+
+          {!orderUser && activeTab === 'orders' && (
+            <button type="button" onClick={handleNewOrder} style={{ ...posTouchBtnPrimary, minHeight: 44 }}>
+              Start order
+            </button>
           )}
 
           {activeTab === 'orders' && orderItems.length > 0 && (
@@ -567,46 +601,45 @@ const POSDashboard: React.FC = () => {
               data-testid="pos-cart-total"
               style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: pos.space[2],
-                padding: `${pos.space[2]} ${pos.space[3]}`,
-                backgroundColor: pos.roleSoft,
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                padding: '8px 16px',
+                background: `linear-gradient(135deg, ${pos.roleSoft}, rgba(0,0,0,0.25))`,
                 border: `1px solid ${pos.roleBorder}`,
-                borderRadius: pos.radius.md,
+                borderRadius: 16,
                 minHeight: pos.touchMin,
+                minWidth: 100,
               }}
             >
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 9,
                   color: pos.headerMuted,
                   textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  fontWeight: 700,
                 }}
               >
-                Cart
+                Ticket
               </span>
-              <span
-                style={{
-                  fontSize: pos.type.fontSize.lg,
-                  fontWeight: pos.type.fontWeight.extrabold,
-                  color: pos.role,
-                }}
-              >
+              <span style={{ fontSize: 20, fontWeight: 900, color: pos.role, lineHeight: 1.1 }}>
                 {fmt(orderTotal)}
               </span>
             </div>
           )}
 
           {isManager && (
-            <div style={{ display: 'flex', gap: pos.space[2] }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <button
                 type="button"
                 onClick={() => setClockInModalOpen(true)}
                 style={{
                   ...posTouchBtnBase,
-                  background: `linear-gradient(135deg, ${pos.success} 0%, ${pos.successDark} 100%)`,
-                  color: '#ffffff',
-                  boxShadow: `0 4px 12px ${pos.success}55`,
+                  borderRadius: 999,
+                  background: pos.successSoft,
+                  color: pos.successDark,
+                  border: `1px solid ${pos.success}`,
                 }}
               >
                 Clock In
@@ -617,11 +650,10 @@ const POSDashboard: React.FC = () => {
                 disabled={activeSessions.length === 0}
                 style={{
                   ...posTouchBtnBase,
-                  background:
-                    activeSessions.length === 0
-                      ? pos.faint
-                      : `linear-gradient(135deg, ${pos.error} 0%, ${pos.errorDark} 100%)`,
-                  color: '#ffffff',
+                  borderRadius: 999,
+                  background: activeSessions.length === 0 ? pos.surfaceElevated : pos.errorSoft,
+                  color: activeSessions.length === 0 ? pos.faint : pos.errorDark,
+                  border: `1px solid ${activeSessions.length === 0 ? pos.border : pos.error}`,
                   opacity: activeSessions.length === 0 ? 0.5 : 1,
                   cursor: activeSessions.length === 0 ? 'not-allowed' : 'pointer',
                 }}
@@ -633,15 +665,14 @@ const POSDashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* ORDERS — dense 3-column board */}
+      {/* ORDERS — landscape craft board: menu ~42% · cart ~28% · pay ~30% */}
       {activeTab === 'orders' && (
         <div
           data-testid="pos-orders-board"
           style={{
             flex: 1,
             overflow: 'hidden',
-            padding: pos.space[3],
-            backgroundColor: pos.surfaceBg,
+            padding: 14,
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
@@ -650,15 +681,15 @@ const POSDashboard: React.FC = () => {
           <div
             style={{
               display: 'flex',
-              gap: pos.space[3],
+              gap: 14,
               flex: 1,
               minHeight: 0,
             }}
           >
-            <div style={{ ...posPanelShell, flex: '5 1 0' }} data-testid="pos-menu-column">
+            <div style={{ ...posPanelShell, flex: '4.2 1 0' }} data-testid="pos-menu-column">
               <MenuPanel onAddItem={handleAddItem} />
             </div>
-            <div style={{ ...posPanelShell, flex: '3 1 0' }} data-testid="pos-cart-column">
+            <div style={{ ...posPanelShell, flex: '2.8 1 0' }} data-testid="pos-cart-column">
               <OrderPanel
                 items={orderItems}
                 onUpdateQuantity={handleUpdateQuantity}

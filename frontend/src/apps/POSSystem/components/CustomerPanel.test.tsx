@@ -121,7 +121,7 @@ describe('CustomerPanel', () => {
         useMemoryRouter: true,
       });
 
-      expect(screen.getByText(/Customer Information/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Guest/i).length).toBeGreaterThan(0);
     });
 
     it('shows customer name input', () => {
@@ -130,7 +130,7 @@ describe('CustomerPanel', () => {
       });
 
       expect(
-        screen.getByPlaceholderText(/Customer Name/i)
+        screen.getByPlaceholderText(/Walk-in or guest name/i)
       ).toBeInTheDocument();
     });
 
@@ -140,7 +140,7 @@ describe('CustomerPanel', () => {
       });
 
       expect(
-        screen.getByPlaceholderText(/Phone Number/i)
+        screen.getByPlaceholderText(/Mobile number/i)
       ).toBeInTheDocument();
     });
 
@@ -247,7 +247,7 @@ describe('CustomerPanel', () => {
       });
 
       expect(screen.getByTestId('pay-empty-hint')).toBeInTheDocument();
-      expect(screen.getByText(/Add items from the menu/i)).toBeInTheDocument();
+      expect(screen.getByText(/Build the ticket first/i)).toBeInTheDocument();
     });
 
     it('shows delivery fee for DELIVERY orders when cart fee is set', () => {
@@ -320,7 +320,7 @@ describe('CustomerPanel', () => {
         useMemoryRouter: true,
       });
 
-      const phoneInput = screen.getByPlaceholderText(/Phone Number/i);
+      const phoneInput = screen.getByPlaceholderText(/Mobile number/i);
       await user.type(phoneInput, '123');
 
       expect(
@@ -335,7 +335,7 @@ describe('CustomerPanel', () => {
         useMemoryRouter: true,
       });
 
-      const phoneInput = screen.getByPlaceholderText(/Phone Number/i);
+      const phoneInput = screen.getByPlaceholderText(/Mobile number/i);
       await user.type(phoneInput, '9876543210');
 
       expect(

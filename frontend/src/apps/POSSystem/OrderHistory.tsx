@@ -125,9 +125,26 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
         overflow: 'auto',
         padding: embedded ? pos.space[4] : pos.space[6],
         background: pos.surfaceBg,
+        backgroundImage: pos.glow,
         minHeight: 0,
       }}
     >
+      <div style={{ marginBottom: 16 }}>
+        <h2
+          style={{
+            margin: '0 0 4px',
+            fontSize: 22,
+            fontWeight: 900,
+            color: pos.ink,
+            letterSpacing: '-0.03em',
+          }}
+        >
+          Today&apos;s orders
+        </h2>
+        <p style={{ margin: 0, fontSize: 13, color: pos.muted }}>
+          Search, mark cash paid, open in manager
+        </p>
+      </div>
       {/* Summary strip */}
       <div
         style={{
@@ -336,13 +353,14 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
                 data-testid={`history-order-${order.orderNumber}`}
                 style={{
                   padding: pos.space[4],
-                  borderRadius: pos.radius.lg,
-                  background: pos.surface,
+                  borderRadius: 18,
+                  background: `linear-gradient(165deg, ${pos.surfaceElevated}, ${pos.surface})`,
                   border: `1px solid ${pos.border}`,
                   boxShadow: pos.shadow.raised.sm,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 12,
+                  borderLeft: `3px solid ${pos.role}`,
                 }}
               >
                 <div
@@ -381,7 +399,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
                     style={{
                       fontSize: 20,
                       fontWeight: 800,
-                      color: pos.roleDark,
+                      color: pos.role,
                     }}
                   >
                     {fmt(order.total || 0)}
