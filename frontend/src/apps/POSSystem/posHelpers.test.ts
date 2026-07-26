@@ -6,6 +6,8 @@ import {
   formatPosTime,
   sumOrderTotals,
   POS_TABS,
+  isSameBusinessDay,
+  businessTimeZoneForCountry,
 } from './posHelpers';
 import { CASHIER_ROLE } from './posTokens';
 
@@ -54,5 +56,16 @@ describe('posHelpers', () => {
     const t = formatPosTime('2026-07-10T12:30:00Z', 'de-DE');
     expect(typeof t).toBe('string');
     expect(t.length).toBeGreaterThan(0);
+  });
+
+  it('maps DE to Europe/Berlin for business day', () => {
+    expect(businessTimeZoneForCountry('DE')).toBe('Europe/Berlin');
+  });
+
+  it('isSameBusinessDay uses store country timezone when provided', () => {
+    // Noon UTC on a fixed day — DE business day still that calendar date in summer
+    const iso = '2026-07-10T12:00:00.000Z';
+    const noonUtc = new Date(iso);
+    expect(isSameBusinessDay(iso, 'DE', noonUtc)).toBe(true);
   });
 });

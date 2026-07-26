@@ -70,6 +70,58 @@ export function formatPosTime(iso: string, locale?: string | null): string {
   }
 }
 
+/** IANA zone from store country for business-day filters (Europe-first seed = DE → Berlin). */
+const TZ_BY_COUNTRY: Record<string, string> = {
+  DE: 'Europe/Berlin',
+  AT: 'Europe/Vienna',
+  CH: 'Europe/Zurich',
+  FR: 'Europe/Paris',
+  BE: 'Europe/Brussels',
+  NL: 'Europe/Amsterdam',
+  ES: 'Europe/Madrid',
+  IT: 'Europe/Rome',
+  PT: 'Europe/Lisbon',
+  PL: 'Europe/Warsaw',
+  SE: 'Europe/Stockholm',
+  DK: 'Europe/Copenhagen',
+  FI: 'Europe/Helsinki',
+  IE: 'Europe/Dublin',
+  GB: 'Europe/London',
+  IN: 'Asia/Kolkata',
+  US: 'America/New_York',
+};
+
+export function businessTimeZoneForCountry(countryCode?: string | null): string | undefined {
+  if (!countryCode) return undefined;
+  return TZ_BY_COUNTRY[countryCode.toUpperCase()];
+}
+
+/** Calendar day in store business timezone (not browser local alone). */
+export function calendarDayKey(date: Date, timeZone?: string): string {
+  if (!timeZone) {
+    return date.toDateString();
+  }
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+export function isSameBusinessDay(
+  iso: string,
+  countryCode?: string | null,
+  now: Date = new Date()
+): boolean {
+  const tz = businessTimeZoneForCountry(countryCode);
+  try {
+    return calendarDayKey(new Date(iso), tz) === calendarDayKey(now, tz);
+  } catch {
+    return new Date(iso).toDateString() === now.toDateString();
+  }
+}
+
 export function sumOrderTotals(
   orders: Array<{ totalAmount?: number; total?: number }>
 ): number {

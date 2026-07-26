@@ -6,13 +6,11 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../../store/hooks';
 import {
-  selectCartCurrency,
-  selectCartLocale,
   selectStoreCountryCode,
   selectDeliveryFeeINR,
 } from '../../../store/slices/cartSlice';
-import { formatMajorAmount } from '../../../utils/currency';
 import { computePreCheckoutTotals, formatTaxDisplay } from '../../../utils/orderTax';
+import { usePosMarket } from '../usePosMarket';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
@@ -56,11 +54,9 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
   onTableSelect: _onTableSelect,
 }) => {
   const { t } = useTranslation();
-  const currency = useAppSelector(selectCartCurrency);
-  const locale = useAppSelector(selectCartLocale);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
   const cartDeliveryFee = useAppSelector(selectDeliveryFeeINR);
-  const fmt = (v: number) => formatMajorAmount(v, currency, locale);
+  const { fmt, marketReady } = usePosMarket();
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = resolvePosDeliveryFee(orderType, subtotal, cartDeliveryFee);
@@ -398,11 +394,11 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
               {t('cart.total')}
             </span>
             <span style={{ fontSize: 28, fontWeight: 900, color: pos.role, letterSpacing: '-0.03em' }}>
-              {fmt(total)}
+              {marketReady ? fmt(total) : '—'}
             </span>
           </div>
           <div style={{ marginTop: 8, fontSize: 11, color: pos.faint, textAlign: 'center' }}>
-            Complete pay →
+            {marketReady ? 'Complete pay →' : 'Waiting for store market…'}
           </div>
         </div>
       )}

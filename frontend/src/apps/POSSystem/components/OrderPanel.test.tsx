@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/utils/testUtils';
+import { syncedEuCartPreload } from '@/test/defaultPreloadedState';
 import OrderPanel from './OrderPanel';
 
 const mockItems = [
@@ -49,6 +50,7 @@ describe('OrderPanel', () => {
     it('renders without crashing', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(screen.getByTestId('order-panel')).toBeInTheDocument();
@@ -58,6 +60,7 @@ describe('OrderPanel', () => {
     it('displays order items', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(screen.getByText('Margherita Pizza')).toBeInTheDocument();
@@ -67,6 +70,7 @@ describe('OrderPanel', () => {
     it('displays item quantities', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(screen.getByText('2')).toBeInTheDocument(); // Pizza quantity
@@ -76,11 +80,12 @@ describe('OrderPanel', () => {
     it('displays item prices', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
-      // Individual price per each
-      expect(screen.getAllByText(/12\.99/).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/4\.99/).length).toBeGreaterThan(0);
+      // Individual price per each — EUR/de-DE uses comma decimal (12,99 €)
+      expect(screen.getAllByText(/12[,.]99/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/4[,.]99/).length).toBeGreaterThan(0);
     });
   });
 
@@ -88,6 +93,7 @@ describe('OrderPanel', () => {
     it('shows empty message when no items in order', () => {
       renderWithProviders(<OrderPanel {...defaultProps} items={[]} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(screen.getByTestId('cart-empty')).toBeInTheDocument();
@@ -97,6 +103,7 @@ describe('OrderPanel', () => {
     it('does not show clear button when order is empty', () => {
       renderWithProviders(<OrderPanel {...defaultProps} items={[]} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(
@@ -109,6 +116,7 @@ describe('OrderPanel', () => {
     it('renders Pickup and Delivery buttons', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(screen.getByText('Pickup')).toBeInTheDocument();
@@ -120,6 +128,7 @@ describe('OrderPanel', () => {
 
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       await user.click(screen.getByText('Delivery'));
@@ -131,7 +140,7 @@ describe('OrderPanel', () => {
 
       renderWithProviders(
         <OrderPanel {...defaultProps} orderType="DELIVERY" />,
-        { useMemoryRouter: true }
+        { useMemoryRouter: true, preloadedState: { cart: syncedEuCartPreload } }
       );
 
       await user.click(screen.getByText('Pickup'));
@@ -145,6 +154,7 @@ describe('OrderPanel', () => {
 
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       // Get all + buttons
@@ -159,6 +169,7 @@ describe('OrderPanel', () => {
 
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       // The minus button text is a special minus character
@@ -171,6 +182,7 @@ describe('OrderPanel', () => {
     it('allows decreasing quantity even when quantity is 1 (removes line)', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       // Steppers stay enabled; quantity 0 path removes the line via parent
@@ -185,6 +197,7 @@ describe('OrderPanel', () => {
 
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       const removeButtons = screen
@@ -200,6 +213,7 @@ describe('OrderPanel', () => {
     it('renders special instructions inputs', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       const notes = screen.getAllByPlaceholderText('Note (optional)');
@@ -209,6 +223,7 @@ describe('OrderPanel', () => {
     it('displays existing special instructions', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       const notes = screen.getAllByPlaceholderText('Note (optional)');
@@ -220,6 +235,7 @@ describe('OrderPanel', () => {
 
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       const notes = screen.getAllByPlaceholderText('Note (optional)');
@@ -233,6 +249,7 @@ describe('OrderPanel', () => {
     it('displays subtotal', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(screen.getByTestId('cart-totals')).toBeInTheDocument();
@@ -243,6 +260,7 @@ describe('OrderPanel', () => {
     it('displays tax amount', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       // DE uses VAT label; match either GST or VAT
@@ -252,6 +270,7 @@ describe('OrderPanel', () => {
     it('displays total', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       // Exact label (avoid matching Subtotal)
@@ -265,12 +284,8 @@ describe('OrderPanel', () => {
           useMemoryRouter: true,
           preloadedState: {
             cart: {
-              items: [],
-              selectedStoreId: 'store-1',
-              selectedStoreName: 'Store',
-              totalItems: 0,
+              ...syncedEuCartPreload,
               deliveryFee: 2.9,
-              storeCountryCode: 'DE',
             },
           },
         }
@@ -282,6 +297,7 @@ describe('OrderPanel', () => {
     it('does not show delivery fee for PICKUP orders', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(screen.queryByText(/Delivery fee/i)).not.toBeInTheDocument();
@@ -290,6 +306,7 @@ describe('OrderPanel', () => {
     it('displays item count badge', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       // Header badge shows total qty (2+1=3)
@@ -301,6 +318,7 @@ describe('OrderPanel', () => {
     it('shows clear button when items exist', () => {
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       expect(
@@ -313,6 +331,7 @@ describe('OrderPanel', () => {
 
       renderWithProviders(<OrderPanel {...defaultProps} />, {
         useMemoryRouter: true,
+        preloadedState: { cart: syncedEuCartPreload },
       });
 
       await user.click(screen.getByRole('button', { name: /Clear/i }));

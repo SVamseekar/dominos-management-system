@@ -13,12 +13,9 @@ import {
   type MenuItem,
 } from '../../../store/api/menuApi';
 import { useAppSelector } from '../../../store/hooks';
-import {
-  selectSelectedStoreId,
-  selectCartCurrency,
-  selectCartLocale,
-} from '../../../store/slices/cartSlice';
+import { selectSelectedStoreId } from '../../../store/slices/cartSlice';
 import { formatMoney } from '../../../utils/currency';
+import { usePosMarket } from '../usePosMarket';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -105,9 +102,8 @@ const chip: React.CSSProperties = {
 };
 
 const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
-  const currency = useAppSelector(selectCartCurrency);
-  const locale = useAppSelector(selectCartLocale);
   const selectedStoreId = useAppSelector(selectSelectedStoreId);
+  const { currency, locale, marketReady } = usePosMarket();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCuisine, setSelectedCuisine] = useState<Cuisine | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
@@ -646,7 +642,9 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onAddItem }) => {
                       }}
                     >
                       <span style={{ fontSize: 15, fontWeight: 800, color: pos.ink }}>
-                        {formatMoney(item.basePrice, currency, locale)}
+                        {marketReady
+                          ? formatMoney(item.basePrice, currency, locale)
+                          : '—'}
                       </span>
                       <button
                         type="button"

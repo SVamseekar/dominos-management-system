@@ -18,12 +18,7 @@ import { useGetStoreOrdersQuery, type Order } from '../../store/api/orderApi';
 import { getRtkErrorMessage } from '../shared/rtkError';
 import { useRecordCashPaymentMutation } from '../../store/api/paymentApi';
 import { useAppSelector } from '../../store/hooks';
-import {
-  selectCartCurrency,
-  selectCartLocale,
-  selectSelectedStoreId,
-} from '../../store/slices/cartSlice';
-import { formatMajorAmount } from '../../utils/currency';
+import { selectSelectedStoreId } from '../../store/slices/cartSlice';
 import AppHeader from '../../components/common/AppHeader';
 import Badge from '../../components/ui/neumorphic/Badge';
 import { useSnackbar } from 'notistack';
@@ -33,7 +28,9 @@ import {
   paymentMethodBadgeStyle,
   formatPosTime,
   sumOrderTotals,
+  isSameBusinessDay,
 } from './posHelpers';
+import { usePosMarket } from './usePosMarket';
 
 interface OrderHistoryProps {
   /** When true, omit full-page header/back chrome (used inside POSDashboard tab) */
@@ -48,10 +45,8 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAppSelector((state) => state.auth);
-  const currency = useAppSelector(selectCartCurrency);
-  const locale = useAppSelector(selectCartLocale);
   const selectedStoreId = useAppSelector(selectSelectedStoreId);
-  const fmt = (v: number) => formatMajorAmount(v, currency, locale);
+  const { locale, storeCountryCode, marketReady, fmt, fmtOrder } = usePosMarket();
   const storeId = storeIdOverride || selectedStoreId || user?.storeId;
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,7 +65,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
     const confirmed = window.confirm(
       `Mark this order as PAID?\n\n` +
         `Order: #${order.orderNumber}\n` +
-        `Amount: ${fmt(order.total)}\n` +
+        `Amount: ${fmtOrder(order.total, order)}\n` +
         `Payment Method: ${order.paymentMethod}\n\n` +
         `This confirms that CASH payment has been received.`
     );
@@ -89,7 +84,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
         notes: `Cash payment recorded for Order #${order.orderNumber}`,
       }).unwrap();
       enqueueSnackbar(
-        `Order #${order.orderNumber} marked as PAID — ${fmt(order.total)}`,
+        `Order #${order.orderNumber} marked as PAID — ${fmtOrder(order.total, order)}`,
         { variant: 'success' }
       );
     } catch (err: unknown) {
@@ -101,10 +96,9 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
     }
   };
 
-  const today = new Date().toDateString();
-  const todayOrders = orders.filter((order: Order) => {
-    return new Date(order.createdAt).toDateString() === today;
-  });
+  const todayOrders = orders.filter((order: Order) =>
+    isSameBusinessDay(order.createdAt, storeCountryCode)
+  );
 
   const filteredOrders = todayOrders.filter((order: Order) => {
     const searchLower = searchTerm.toLowerCase();
@@ -145,6 +139,23 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
           Search, mark cash paid, open in manager
         </p>
       </div>
+      {!marketReady && storeId && (
+        <div
+          data-testid="history-market-loading"
+          style={{
+            marginBottom: pos.space[3],
+            padding: pos.space[3],
+            borderRadius: pos.radius.md,
+            background: pos.infoSoft,
+            border: `1px solid ${pos.info}`,
+            color: pos.ink,
+            fontSize: 13,
+          }}
+        >
+          Loading store market for money display…
+        </div>
+      )}
+
       {/* Summary strip */}
       <div
         style={{
@@ -401,7 +412,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
                       color: pos.role,
                     }}
                   >
-                    {fmt(order.total || 0)}
+                    {fmtOrder(order.total || 0, order)}
                   </div>
                 </div>
 

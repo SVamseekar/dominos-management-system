@@ -1,8 +1,5 @@
 // src/apps/POSSystem/components/MetricsTiles.tsx
 import React from 'react';
-import { useAppSelector } from '../../../store/hooks';
-import { selectCartCurrency, selectCartLocale } from '../../../store/slices/cartSlice';
-import { formatMajorAmount } from '../../../utils/currency';
 import {
   useGetTodaySalesMetricsQuery,
   useGetAverageOrderValueQuery,
@@ -11,6 +8,7 @@ import {
 import Card from '../../../components/ui/neumorphic/Card';
 import { colors, spacing, typography } from '../../../styles/design-tokens';
 import { pos } from '../posTokens';
+import { usePosMarket } from '../usePosMarket';
 import EuroIcon from '@mui/icons-material/Euro';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -30,9 +28,7 @@ interface MetricsTilesProps {
  * Shows today's sales, comparisons, and operational stats
  */
 const MetricsTiles: React.FC<MetricsTilesProps> = ({ storeId }) => {
-  const currency = useAppSelector(selectCartCurrency);
-  const locale = useAppSelector(selectCartLocale);
-  const fmt = (v: number) => formatMajorAmount(v, currency, locale);
+  const { currency, marketReady, fmt } = usePosMarket();
   const SalesCurrencyIcon =
     currency === 'INR' ? CurrencyRupeeIcon : currency === 'EUR' ? EuroIcon : AttachMoneyIcon;
   // Fetch real-time metrics from analytics service
@@ -65,6 +61,24 @@ const MetricsTiles: React.FC<MetricsTilesProps> = ({ storeId }) => {
   });
 
   const isLoading = salesLoading || avgLoading || driverLoading;
+
+  if (!marketReady) {
+    return (
+      <div
+        data-testid="metrics-tiles-market-loading"
+        style={{
+          padding: spacing[4],
+          borderRadius: 12,
+          background: pos.infoSoft,
+          border: `1px solid ${pos.info}`,
+          color: pos.ink,
+          fontSize: 13,
+        }}
+      >
+        Loading store market for metrics…
+      </div>
+    );
+  }
 
   // Show error state if sales data fails to load — do not invent offline numbers
   if (salesError) {

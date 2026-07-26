@@ -13,10 +13,11 @@ import {
   selectDeliveryFeeINR,
   selectStoreMarketSynced,
 } from '../../store/slices/cartSlice';
-import { formatMajorAmount, apiPriceToCartMajor } from '../../utils/currency';
+import { apiPriceToCartMajor } from '../../utils/currency';
 import { storeCurrencyPayload, resolveStoreMarket } from '../../utils/storeCurrency';
 import { computePreCheckoutTotals } from '../../utils/orderTax';
 import { useGetStoreQuery, useGetActiveStoresQuery } from '../../store/api/storeApi';
+import { usePosMarket } from './usePosMarket';
 import MenuPanel from './components/MenuPanel';
 import OrderPanel from './components/OrderPanel';
 import CustomerPanel from './components/CustomerPanel';
@@ -56,6 +57,7 @@ import {
   resolvePosDeliveryFee,
   formatPosTime,
   sumOrderTotals,
+  isSameBusinessDay,
 } from './posHelpers';
 
 /**
@@ -69,7 +71,7 @@ const POSDashboard: React.FC = () => {
   const locale = useAppSelector(selectCartLocale);
   const cartDeliveryFee = useAppSelector(selectDeliveryFeeINR);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
-  const fmt = (v: number) => formatMajorAmount(v, currency, locale);
+  const { marketReady, fmt, fmtOrder } = usePosMarket();
   const [searchParams] = useSearchParams();
   const { user } = useAppSelector((state) => state.auth);
   const { enqueueSnackbar } = useSnackbar();
@@ -203,10 +205,9 @@ const POSDashboard: React.FC = () => {
     skip: !storeId || activeTab !== 'reports',
   });
 
-  const today = new Date().toDateString();
-  const todayOrders = orders.filter((order: Order) => {
-    return new Date(order.createdAt).toDateString() === today;
-  });
+  const todayOrders = orders.filter((order: Order) =>
+    isSameBusinessDay(order.createdAt, storeCountryCode)
+  );
   const totalSales = sumOrderTotals(todayOrders);
 
   const handleNewOrder = useCallback(() => {
@@ -328,7 +329,7 @@ const POSDashboard: React.FC = () => {
     const confirmed = window.confirm(
       `Mark this order as PAID?\n\n` +
         `Order: #${order.orderNumber}\n` +
-        `Amount: ${fmt(order.total)}\n` +
+        `Amount: ${fmtOrder(order.total, order)}\n` +
         `Payment Method: ${order.paymentMethod}\n\n` +
         `This confirms that CASH payment has been received.`
     );
@@ -349,7 +350,7 @@ const POSDashboard: React.FC = () => {
       }).unwrap();
 
       enqueueSnackbar(
-        `Order #${order.orderNumber} marked as PAID — Cash payment of ${fmt(order.total)} recorded.`,
+        `Order #${order.orderNumber} marked as PAID — Cash payment of ${fmtOrder(order.total, order)} recorded.`,
         { variant: 'success' }
       );
     } catch (error: unknown) {
@@ -813,6 +814,23 @@ const POSDashboard: React.FC = () => {
             </div>
           )}
 
+          {storeId && !marketReady && (
+            <div
+              data-testid="pos-reports-market-loading"
+              style={{
+                marginBottom: pos.space[4],
+                padding: pos.space[4],
+                borderRadius: pos.radius.md,
+                background: pos.infoSoft,
+                border: `1px solid ${pos.info}`,
+                color: pos.ink,
+                fontSize: 13,
+              }}
+            >
+              Loading store market (currency / country) before showing reports…
+            </div>
+          )}
+
           {storeId && (
             <>
               {todayError && (
@@ -1165,7 +1183,7 @@ const POSDashboard: React.FC = () => {
                                   color: pos.role,
                                 }}
                               >
-                                {fmt(order.total || 0)}
+                                {fmtOrder(order.total || 0, order)}
                               </div>
                               {order.paymentStatus === 'PENDING' &&
                                 order.paymentMethod === 'CASH' && (
