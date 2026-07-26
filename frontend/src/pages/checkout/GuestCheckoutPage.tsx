@@ -95,8 +95,8 @@ const GuestCheckoutPage: React.FC = () => {
   const currency = useAppSelector(selectCartCurrency);
   const locale = useAppSelector(selectCartLocale);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
-  // Berlin demo / EU: prefer DE form copy when cart country not yet set (same as PaymentPage)
-  const formCountry = storeCountryCode ?? 'DE';
+  // Form copy from selected store country only (null = India legacy helpers)
+  const formCountry = storeCountryCode;
   const currentUser = useAppSelector(selectCurrentUser);
   const selectedStoreId = useAppSelector(selectSelectedStoreId);
   const selectedStoreName = useAppSelector(selectSelectedStoreName);

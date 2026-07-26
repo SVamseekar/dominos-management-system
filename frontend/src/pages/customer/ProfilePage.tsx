@@ -96,7 +96,8 @@ const ProfilePage: React.FC = () => {
   const currency = useAppSelector(selectCartCurrency);
   const locale = useAppSelector(selectCartLocale);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
-  const formCountry = storeCountryCode ?? 'DE';
+  // Form copy from selected store country only (null = India legacy helpers)
+  const formCountry = storeCountryCode;
   const [activeSection, setActiveSection] = useState(() => searchParams.get('section') || 'overview');
   const [editing, setEditing] = useState(false);
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
