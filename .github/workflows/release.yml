@@ -150,7 +150,7 @@ jobs:
             - core-service (port 8085)
             - commerce-service (port 8084)
             - payment-service (port 8089)
-            - logistics-service (port 8095)
+            - logistics-service (port 8086)
             - intelligence-service (port 8087)
 
             ### Infrastructure

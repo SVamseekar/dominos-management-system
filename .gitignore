@@ -90,11 +90,11 @@ frontend/tsconfig.tsbuildinfo
 *.webp
 *.jpg
 *.jpeg
+!frontend/public/images/menu/*.jpg
 
 # Local AI / IDE tooling (never commit)
+AGENTS.md
 .claude/
-.claude-context.md
-CLAUDE.md
 .mcp.json
 .superpowers/
 .cursor/
@@ -117,7 +117,6 @@ scripts/node_modules/
 mvn21
 smart-doc.json
 generate-docs.sh
-.claude-context.md
 stop-all.sh
 
 # Archive (historical old services, not needed in repo)

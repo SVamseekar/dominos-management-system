@@ -51,8 +51,8 @@ const RegisterPage: React.FC = () => {
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from || '/checkout';
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
-  // Berlin demo: prefer DE copy when cart country not yet set
-  const formCountry = storeCountryCode ?? 'DE';
+  // Form copy from selected store country only (null = India legacy helpers)
+  const formCountry = storeCountryCode;
   const [register, { isLoading }] = useRegisterMutation();
   const [googleRegister, { isLoading: isGoogleLoading }] = useGoogleRegisterMutation();
   const [createCustomer] = useCreateCustomerMutation();

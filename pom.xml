@@ -91,6 +91,16 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>${spring-boot.version}</version>
+                    <!-- Required: parent is not spring-boot-starter-parent, so repackage
+                         is not bound by default. Without this, jars lack Main-Class
+                         ("no main manifest attribute") and Docker containers crash-loop. -->
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

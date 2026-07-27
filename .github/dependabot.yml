@@ -1,6 +1,4 @@
 # Conservative Dependabot — security-first, low PR volume.
-# Stripe deps ignored while Global-4 (feature/global-4-stripe-payments) is in flight.
-# Re-enable @stripe/* and stripe-java after Global-4 merges to main.
 
 version: 2
 
@@ -25,8 +23,6 @@ updates:
           - minor
           - patch
     ignore:
-      # Global-4: pin Stripe server SDK until payment gateway work lands
-      - dependency-name: com.stripe:stripe-java
       # Spring Boot minor bumps need intentional upgrade windows
       - dependency-name: org.springframework.boot:spring-boot-dependencies
         update-types:
@@ -54,11 +50,6 @@ updates:
         update-types:
           - minor
           - patch
-    ignore:
-      # Global-4: Stripe.js versions tested with PaymentElement integration
-      - dependency-name: "@stripe/stripe-js"
-      - dependency-name: "@stripe/react-stripe-js"
-
   # ── GitHub Actions (CI, deploy, contract validation) ──────────────────────
   - package-ecosystem: github-actions
     directory: /

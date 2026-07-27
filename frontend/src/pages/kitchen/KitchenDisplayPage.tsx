@@ -8,7 +8,7 @@ import { useAppSelector } from '../../store/hooks';
 import { selectCurrentUser } from '../../store/slices/authSlice';
 import { selectSelectedStoreId, setSelectedStore, setStoreCurrency } from '../../store/slices/cartSlice';
 import { useGetActiveStoresQuery } from '../../store/api/storeApi';
-import { storeCurrencyPayload } from '../../utils/storeCurrency';
+import { storeCurrencyPayload, resolveStoreMarket } from '../../utils/storeCurrency';
 import {
   useGetKitchenQueueQuery,
   useUpdateOrderStatusMutation,
@@ -176,7 +176,9 @@ const KitchenDisplayPage: React.FC = () => {
     (storeId: string, storeName: string) => {
       const match = stores.find((s) => s.storeCode === storeId || s.id === storeId);
       dispatch(setSelectedStore({ storeId, storeName }));
-      dispatch(setStoreCurrency(storeCurrencyPayload(match)));
+      if (match && resolveStoreMarket(match).resolved) {
+        dispatch(setStoreCurrency(storeCurrencyPayload(match)));
+      }
     },
     [dispatch, stores]
   );

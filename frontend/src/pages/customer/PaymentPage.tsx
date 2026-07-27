@@ -59,8 +59,8 @@ const PaymentPage: React.FC = () => {
   const currency = useAppSelector(selectCartCurrency);
   const locale = useAppSelector(selectCartLocale);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
-  // Berlin demo / EU: prefer DE when cart country not yet set
-  const paymentCountry = storeCountryCode ?? 'DE';
+  // Country only from cart after store profile hydration — never invent DE
+  const paymentCountry = storeCountryCode;
   const showUpi = isUpiAvailable(paymentCountry);
   const fmt = (v: number) => formatMajorAmount(v , currency, locale);
 

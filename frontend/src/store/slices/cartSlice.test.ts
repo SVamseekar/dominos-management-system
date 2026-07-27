@@ -309,10 +309,11 @@ describe('cartSlice', () => {
   });
 
   describe('setStoreCurrency', () => {
-    it('sets currency and locale on the cart state', () => {
+    it('sets currency and locale on the cart state and marks market synced', () => {
       const state = cartReducer(emptyState, setStoreCurrency({ currency: 'EUR', locale: 'de-DE' }));
       expect(state.currency).toBe('EUR');
       expect(state.locale).toBe('de-DE');
+      expect(state.storeMarketSynced).toBe(true);
     });
 
     it('selectCartCurrency reflects the new currency after setStoreCurrency', () => {
