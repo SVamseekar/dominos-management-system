@@ -14,7 +14,7 @@ import {
   selectCartLocale,
   selectStoreCountryCode,
 } from '../../store/slices/cartSlice';
-import {formatMoney, formatMajorAmount} from '../../utils/currency';
+import { formatMajorAmount } from '../../utils/currency';
 import { computePreCheckoutTotals, formatTaxDisplay } from '../../utils/orderTax';
 import { getApiErrorMessage } from '../utils/apiError';
 import { selectCurrentUser } from '../../store/slices/authSlice';
