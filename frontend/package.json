@@ -22,7 +22,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@hookform/resolvers": "^3.10.0",
+    "@hookform/resolvers": "^5.4.0",
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
     "@react-google-maps/api": "^2.20.8",
