@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Phase D — Manager analytics & notifications True E2E verify against live gateway (Dell).
+ * Analytics & notifications — True E2E verify against live gateway (Dell).
  *
  * Covers:
  *  D1 Analytics / BI (staff leaderboard, sales trends, executive-summary, bi engine)
@@ -8,7 +8,7 @@
  *  D3 Suppliers n≥1, equipment list/seed, shifts empty-or-list 200
  *
  * Usage:
- *   GW=http://192.168.50.88:8080 node scripts/reseed/verify-phase-d-e2e.js
+ *   GW=http://192.168.50.88:8080 node scripts/reseed/verify-analytics-notifications-e2e.js
  *
  * Exit 0 only if all critical checks pass.
  */
@@ -66,7 +66,7 @@ function assertDashboardShape(summary) {
 }
 
 async function main() {
-  console.log(`\nPhase D E2E verify → ${GW}\n`);
+  console.log(`\nAnalytics/notifications E2E verify → ${GW}\n`);
 
   const { token: manager, user } = await login('manager.berlin@gmail.com');
   const managerId = user?.id;
@@ -256,7 +256,7 @@ async function main() {
   }
 
   const failed = results.filter((r) => !r.ok);
-  console.log(`\n——— Phase D: ${results.length - failed.length}/${results.length} passed ——-\n`);
+  console.log(`\n——— Analytics/notifications: ${results.length - failed.length}/${results.length} passed ——-\n`);
   if (failed.length) {
     failed.forEach((f) => console.error(`  • ${f.name}: ${f.detail}`));
     process.exit(1);
@@ -265,6 +265,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('verify-phase-d-e2e fatal:', err);
+  console.error('verify-analytics-notifications-e2e fatal:', err);
   process.exit(1);
 });

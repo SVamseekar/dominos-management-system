@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Phase B residual — True E2E verification against live gateway (Dell).
+ * Orders/delivery — True E2E verification against live gateway (Dell).
  *
  * Covers:
  *  B1 staff create order
@@ -10,7 +10,7 @@
  *  Customer-path order through DELIVERED with driver steps
  *
  * Usage:
- *   GW=http://192.168.50.88:8080 node scripts/reseed/verify-phase-b-e2e.js
+ *   GW=http://192.168.50.88:8080 node scripts/reseed/verify-orders-delivery-e2e.js
  *
  * Exit 0 only if all checks pass.
  */
@@ -76,7 +76,7 @@ async function advanceOrder(token, orderId, statuses) {
 }
 
 async function main() {
-  console.log(`\nPhase B E2E verify → ${GW}\n`);
+  console.log(`\nOrders/delivery E2E verify → ${GW}\n`);
 
   const manager = await login('manager.berlin@gmail.com');
   const driver = await login('driver.berlin@gmail.com');
@@ -440,7 +440,7 @@ async function main() {
   if (failed.length) {
     process.exit(1);
   }
-  console.log('Phase B residual E2E: ALL GREEN\n');
+  console.log('Orders/delivery E2E: ALL GREEN\n');
 }
 
 main().catch((e) => {

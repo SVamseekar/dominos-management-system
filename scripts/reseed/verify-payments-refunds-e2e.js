@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Phase C — Payments & refunds (EU / Stripe) True E2E verify against live gateway (Dell).
+ * Payments & refunds (EU / Stripe) — True E2E verify against live gateway (Dell).
  *
  * Covers:
  *  C1 DE order → Stripe initiate (or synthetic if keys missing) → SUCCESS path
@@ -9,7 +9,7 @@
  *  Seed path: POST /api/payments/seed-demo (fallback: cash-created synthetic txs)
  *
  * Usage:
- *   GW=http://192.168.50.88:8080 node scripts/reseed/verify-phase-c-e2e.js
+ *   GW=http://192.168.50.88:8080 node scripts/reseed/verify-payments-refunds-e2e.js
  *
  * Optional live Stripe keys on Dell:
  *   STRIPE_SECRET_KEY / STRIPE_PUBLISHABLE_KEY / STRIPE_WEBHOOK_SECRET in payment-service env
@@ -69,7 +69,7 @@ function jwtSub(token) {
 }
 
 async function main() {
-  console.log(`\nPhase C E2E verify → ${GW}\n`);
+  console.log(`\nPayments/refunds E2E verify → ${GW}\n`);
 
   const manager = await login('manager.berlin@gmail.com');
   const customer = await login('anna.mueller@gmail.com');
@@ -468,7 +468,7 @@ async function main() {
     failed.forEach((f) => console.error(`  • ${f.name}: ${f.detail}`));
     process.exit(1);
   }
-  console.log('Phase C ALL GREEN\n');
+  console.log('Payments/refunds E2E: ALL GREEN\n');
   process.exit(0);
 }
 
