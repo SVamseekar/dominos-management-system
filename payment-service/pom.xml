@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.razorpay</groupId>
             <artifactId>razorpay-java</artifactId>
-            <version>1.4.6</version>
+            <version>1.4.9</version>
         </dependency>
 
         <!-- Stripe Java SDK — EU/Global payments (Global-4) -->
@@ -128,25 +128,25 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>1.19.3</version>
+            <version>1.21.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>mongodb</artifactId>
-            <version>1.19.3</version>
+            <version>1.21.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.19.3</version>
+            <version>1.21.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>rabbitmq</artifactId>
-            <version>1.19.3</version>
+            <version>1.21.4</version>
             <scope>test</scope>
         </dependency>
         <!-- Shared test utilities -->
@@ -172,7 +172,7 @@
         <dependency>
             <groupId>au.com.dius.pact.provider</groupId>
             <artifactId>spring6</artifactId>
-            <version>4.6.17</version>
+            <version>4.7.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
