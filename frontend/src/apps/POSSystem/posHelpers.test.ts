@@ -6,6 +6,8 @@ import {
   formatPosTime,
   sumOrderTotals,
   POS_TABS,
+  isSameBusinessDay,
+  businessTimeZoneForCountry,
 } from './posHelpers';
 import { CASHIER_ROLE } from './posTokens';
 
@@ -15,8 +17,8 @@ describe('posHelpers', () => {
     expect(POS_TABS.every((t) => t.shortcut.startsWith('F'))).toBe(true);
   });
 
-  it('uses Cashier role blue #2196F3', () => {
-    expect(CASHIER_ROLE).toBe('#2196F3');
+  it('uses POS warm orange accent #f97316', () => {
+    expect(CASHIER_ROLE).toBe('#f97316');
   });
 
   it('styles CASH / CARD / WALLET / UPI badges distinctly', () => {
@@ -54,5 +56,16 @@ describe('posHelpers', () => {
     const t = formatPosTime('2026-07-10T12:30:00Z', 'de-DE');
     expect(typeof t).toBe('string');
     expect(t.length).toBeGreaterThan(0);
+  });
+
+  it('maps DE to Europe/Berlin for business day', () => {
+    expect(businessTimeZoneForCountry('DE')).toBe('Europe/Berlin');
+  });
+
+  it('isSameBusinessDay uses store country timezone when provided', () => {
+    // Noon UTC on a fixed day — DE business day still that calendar date in summer
+    const iso = '2026-07-10T12:00:00.000Z';
+    const noonUtc = new Date(iso);
+    expect(isSameBusinessDay(iso, 'DE', noonUtc)).toBe(true);
   });
 });

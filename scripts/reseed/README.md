@@ -22,7 +22,7 @@ After 2026-07-09 repair:
 | Entity | Count | Notes |
 |---|---|---|
 | Stores | 3 | DOM001 Berlin DE/EUR, + DOM002/DOM003 |
-| Menu | 39 | Italian pizzas etc., prices in cents/EUR minor units |
+| Menu | 102 | Multi-cuisine + European expansion + elegant `/images/menu/*` photos (EUR cents) |
 | Staff users | 6+ | `*.berlin@gmail.com` / `Demo@1234` |
 | Customers | 5 | same password `Demo@1234` |
 | Orders | 142 | `customerId` = **userId** (JWT `sub`); statuses diversified |
@@ -43,7 +43,9 @@ After 2026-07-09 repair:
 | `seed-intelligence.js` | `POST /api/analytics/seed-demo` (clear Redis + warm dashboard; no owned entities) |
 | `mongo-fix-demo.js` | Diversify order statuses; ensure DOM001 EU fields (legacy repair) |
 | `mongo-link-orders-userid.js` | Set `orders.customerId` = `customers.userId` for gateway ownership |
-| `verify-phase-b-e2e.js` | **True E2E Phase B residual** — create → kitchen → dispatch → accept → OTP → DELIVERED + cancel path + SockJS check |
+| `verify-orders-delivery-e2e.js` | **True E2E orders/delivery** — create → kitchen → dispatch → accept → OTP → DELIVERED + cancel path + SockJS check |
+| `verify-payments-refunds-e2e.js` | **True E2E payments/refunds** — EU/Stripe initiate, refunds, agent approval gate |
+| `verify-analytics-notifications-e2e.js` | **True E2E analytics/notifications** — BI dashboards, notifications, suppliers/equipment/shifts |
 
 ### Phase E — Full platform reseed + backend load (one path)
 
@@ -74,10 +76,10 @@ GW=http://192.168.50.88:8080 CONCURRENCY=40 REQUESTS=800 \
 
 **Profile gate:** seed controllers/services only work when `SPRING_PROFILES_ACTIVE` includes `dev` or `demo`. Outside those profiles endpoints return 404 (or controller beans are not loaded for core `TestDataController`).
 
-### Phase B residual verify (Mac → Dell gateway)
+### Orders/delivery verify (Mac → Dell gateway)
 
 ```bash
-GW=http://192.168.50.88:8080 node scripts/reseed/verify-phase-b-e2e.js
+GW=http://192.168.50.88:8080 node scripts/reseed/verify-orders-delivery-e2e.js
 # Exit 0 = all green. Requires commerce + logistics on latest main.
 ```
 
@@ -146,7 +148,7 @@ Covers: landing, legal pages, manager dashboard + analytics + orders, customer m
 - `SPRING_PROFILES_ACTIVE=dev`
 - Rabbit: `masova` / `masova_secret`
 
-## Phase C — Payments & refunds (EU / Stripe)
+## Payments & refunds (EU / Stripe)
 
 ### Dell env (payment-service — **never commit secrets**)
 
@@ -199,10 +201,10 @@ $env:RAZORPAY_WEBHOOK_SECRET = "..."
 # Store countryCode must be IN (or null legacy). EU stores stay DE → Stripe.
 ```
 
-### Phase C verify (Mac → Dell)
+### Payments/refunds verify (Mac → Dell)
 
 ```bash
-GW=http://192.168.50.88:8080 node scripts/reseed/verify-phase-c-e2e.js
+GW=http://192.168.50.88:8080 node scripts/reseed/verify-payments-refunds-e2e.js
 # Exit 0 = green. Works with synthetic seed+cash if Stripe test keys are not set.
 ```
 

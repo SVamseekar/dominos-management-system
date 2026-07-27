@@ -9,8 +9,6 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { useAppSelector } from '../../store/hooks';
-import { selectCartCurrency, selectCartLocale } from '../../store/slices/cartSlice';
-import {formatMoney, formatMajorAmount} from '../../utils/currency';
 import {
   useGetTodaySalesMetricsQuery,
   useGetSalesTrendsQuery,
@@ -21,6 +19,7 @@ import AppHeader from '../../components/common/AppHeader';
 import Card from '../../components/ui/neumorphic/Card';
 import Button from '../../components/ui/neumorphic/Button';
 import { colors, shadows, spacing, typography } from '../../styles/design-tokens';
+import { usePosMarket } from './usePosMarket';
 
 /**
  * Reports Page (Manager Only)
@@ -29,9 +28,7 @@ import { colors, shadows, spacing, typography } from '../../styles/design-tokens
 const Reports: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
-  const currency = useAppSelector(selectCartCurrency);
-  const locale = useAppSelector(selectCartLocale);
-  const fmt = (v: number) => formatMajorAmount(v , currency, locale);
+  const { fmt, marketReady } = usePosMarket();
   const [activeTab, setActiveTab] = useState<'sales' | 'staff' | 'inventory'>('sales');
 
   const storeId = user?.storeId;

@@ -1,28 +1,33 @@
 // src/apps/POSSystem/components/OrderPanel.tsx
 /**
- * POS cart column — dense line items, large steppers, sticky totals.
- * Pattern: Toast / Square order ticket.
+ * Craft cart ticket — segmented order type, receipt lines, sticky totals.
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../../store/hooks';
 import {
-  selectCartCurrency,
-  selectCartLocale,
   selectStoreCountryCode,
   selectDeliveryFeeINR,
 } from '../../../store/slices/cartSlice';
-import { formatMajorAmount } from '../../../utils/currency';
 import { computePreCheckoutTotals, formatTaxDisplay } from '../../../utils/orderTax';
+import { usePosMarket } from '../usePosMarket';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { AllergenType, ALLERGEN_LABELS } from '../../../constants/allergens';
 import type { POSOrderItem } from '../types';
-import { pos, posTouchBtnBase } from '../posTokens';
+import {
+  pos,
+  posTouchBtnBase,
+  posPanelHeader,
+  posSectionTitle,
+  posField,
+  posTouchBtnDanger,
+} from '../posTokens';
 import { resolvePosDeliveryFee } from '../posHelpers';
 
 interface OrderPanelProps {
@@ -49,11 +54,9 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
   onTableSelect: _onTableSelect,
 }) => {
   const { t } = useTranslation();
-  const currency = useAppSelector(selectCartCurrency);
-  const locale = useAppSelector(selectCartLocale);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
   const cartDeliveryFee = useAppSelector(selectDeliveryFeeINR);
-  const fmt = (v: number) => formatMajorAmount(v, currency, locale);
+  const { fmt, marketReady } = usePosMarket();
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = resolvePosDeliveryFee(orderType, subtotal, cartDeliveryFee);
@@ -80,50 +83,32 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
       data-testid="order-panel"
       style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
     >
-      {/* Header + order type */}
-      <div
-        style={{
-          padding: pos.space[3],
-          borderBottom: `2px solid ${pos.border}`,
-          background: `linear-gradient(180deg, ${pos.surface} 0%, ${pos.surfaceAlt} 100%)`,
-          flexShrink: 0,
-        }}
-      >
+      <div style={posPanelHeader}>
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: pos.space[3],
+            marginBottom: 14,
           }}
         >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: pos.type.fontSize.base,
-              fontWeight: pos.type.fontWeight.bold,
-              color: pos.ink,
-              display: 'flex',
-              alignItems: 'center',
-              gap: pos.space[2],
-            }}
-          >
-            <ShoppingCartIcon style={{ fontSize: 22, color: pos.role }} />
-            Cart
+          <h3 style={posSectionTitle}>
+            <ReceiptLongIcon style={{ fontSize: 22, color: pos.role }} />
+            Ticket
             {itemCount > 0 && (
               <span
                 style={{
-                  minWidth: 24,
-                  height: 24,
-                  borderRadius: pos.radius.full,
+                  minWidth: 26,
+                  height: 26,
+                  borderRadius: 999,
                   background: pos.role,
-                  color: pos.inverse,
+                  color: '#fff',
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 900,
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: '0 6px',
+                  padding: '0 8px',
                 }}
               >
                 {itemCount}
@@ -131,25 +116,12 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
             )}
           </h3>
           {items.length > 0 && (
-            <button
-              type="button"
-              onClick={onNewOrder}
-              style={{
-                ...posTouchBtnBase,
-                minHeight: 40,
-                padding: '8px 14px',
-                background: pos.errorSoft,
-                color: pos.errorDark,
-                border: `1px solid ${pos.error}`,
-                fontSize: 12,
-              }}
-            >
+            <button type="button" onClick={onNewOrder} style={{ ...posTouchBtnDanger, minHeight: 40, padding: '8px 12px', fontSize: 12 }}>
               Clear
             </button>
           )}
         </div>
 
-        {/* Segmented order type — full-width touch targets */}
         <div
           role="group"
           aria-label="Order type"
@@ -157,9 +129,10 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
             display: 'grid',
             gridTemplateColumns: '1fr 1fr 1fr',
             gap: 6,
-            background: pos.surfaceAlt,
-            padding: 4,
-            borderRadius: pos.radius.md,
+            background: 'rgba(0,0,0,0.35)',
+            padding: 5,
+            borderRadius: 16,
+            border: `1px solid ${pos.border}`,
           }}
         >
           {orderTypes.map((type) => {
@@ -171,17 +144,17 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                 onClick={() => onOrderTypeChange(type.value)}
                 style={{
                   ...posTouchBtnBase,
-                  minHeight: 52,
+                  minHeight: 56,
                   flexDirection: 'column',
-                  gap: 2,
+                  gap: 4,
                   padding: '8px 4px',
                   fontSize: 11,
-                  borderRadius: pos.radius.sm,
+                  borderRadius: 12,
                   ...(active
                     ? {
-                        background: pos.role,
-                        color: pos.inverse,
-                        boxShadow: `0 4px 10px ${pos.roleShadow}`,
+                        background: `linear-gradient(160deg, ${pos.role}, ${pos.roleDark})`,
+                        color: '#fff',
+                        boxShadow: `0 6px 16px ${pos.roleShadow}`,
                       }
                     : {
                         background: 'transparent',
@@ -189,54 +162,53 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                       }),
                 }}
               >
-                <type.Icon style={{ fontSize: 20 }} />
-                <span>{type.label}</span>
+                <type.Icon style={{ fontSize: 22 }} />
+                <span style={{ fontWeight: 800 }}>{type.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Line items */}
       <div
         style={{
           flex: 1,
           overflow: 'auto',
-          padding: pos.space[3],
+          padding: 12,
           minHeight: 0,
-          background: pos.surfaceBg,
+          background: 'rgba(0,0,0,0.18)',
         }}
       >
         {items.length === 0 ? (
           <div
             data-testid="cart-empty"
             style={{
-              marginTop: pos.space[6],
-              padding: pos.space[6],
-              borderRadius: pos.radius.lg,
-              border: `2px dashed ${pos.border}`,
-              background: pos.surface,
+              marginTop: 24,
+              padding: 28,
+              borderRadius: 18,
+              border: `1px dashed ${pos.border}`,
+              background: `radial-gradient(circle at 50% 0%, ${pos.roleSoft}, ${pos.surface} 60%)`,
               textAlign: 'center',
             }}
           >
-            <ShoppingCartIcon style={{ fontSize: 40, color: pos.faint, marginBottom: 12 }} />
-            <div style={{ fontWeight: 700, color: pos.ink, marginBottom: 6 }}>Cart is empty</div>
-            <div style={{ fontSize: 13, color: pos.muted, lineHeight: 1.4 }}>
-              Tap menu items on the left to build the order. Pay on the right when ready.
+            <ShoppingCartIcon style={{ fontSize: 44, color: pos.faint, marginBottom: 12 }} />
+            <div style={{ fontWeight: 800, color: pos.ink, marginBottom: 6, fontSize: 16 }}>
+              Ticket is empty
+            </div>
+            <div style={{ fontSize: 13, color: pos.muted, lineHeight: 1.45 }}>
+              Build the order from the menu. Payment stays on the right when ready.
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {items.map((item) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {items.map((item, idx) => (
               <div
                 key={item.menuItemId}
                 data-testid={`cart-line-${item.menuItemId}`}
                 style={{
-                  padding: 12,
-                  borderRadius: pos.radius.md,
-                  background: pos.surface,
-                  border: `1px solid ${pos.border}`,
-                  boxShadow: pos.shadow.raised.sm,
+                  padding: '14px 4px',
+                  borderBottom:
+                    idx < items.length - 1 ? `1px dashed ${pos.border}` : 'none',
                 }}
               >
                 <div
@@ -249,33 +221,18 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: pos.ink,
-                        lineHeight: 1.25,
-                      }}
-                    >
+                    <div style={{ fontSize: 14, fontWeight: 800, color: pos.ink, lineHeight: 1.25 }}>
                       {item.name}
                     </div>
                     <div style={{ fontSize: 12, color: pos.muted, marginTop: 2 }}>
                       {fmt(item.price)} each
                     </div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 800,
-                      color: pos.roleDark,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                  <div style={{ fontSize: 15, fontWeight: 900, color: pos.role, whiteSpace: 'nowrap' }}>
                     {fmt(item.price * item.quantity)}
                   </div>
                 </div>
 
-                {/* Large steppers */}
                 <div
                   style={{
                     display: 'flex',
@@ -292,9 +249,9 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                       style={{
                         width: pos.touchMin,
                         height: pos.touchMin,
-                        borderRadius: pos.radius.md,
+                        borderRadius: 14,
                         border: `1px solid ${pos.border}`,
-                        background: pos.surfaceAlt,
+                        background: 'rgba(0,0,0,0.35)',
                         color: pos.ink,
                         fontSize: 22,
                         fontWeight: 700,
@@ -302,7 +259,6 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontFamily: pos.font,
                       }}
                     >
                       −
@@ -312,7 +268,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                         minWidth: 36,
                         textAlign: 'center',
                         fontSize: 18,
-                        fontWeight: 800,
+                        fontWeight: 900,
                         color: pos.ink,
                       }}
                     >
@@ -325,18 +281,17 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                       style={{
                         width: pos.touchMin,
                         height: pos.touchMin,
-                        borderRadius: pos.radius.md,
+                        borderRadius: 14,
                         border: 'none',
-                        background: pos.role,
-                        color: pos.inverse,
+                        background: `linear-gradient(145deg, ${pos.role}, ${pos.roleDark})`,
+                        color: '#fff',
                         fontSize: 22,
                         fontWeight: 700,
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontFamily: pos.font,
-                        boxShadow: `0 2px 8px ${pos.roleShadow}`,
+                        boxShadow: `0 4px 12px ${pos.roleShadow}`,
                       }}
                     >
                       +
@@ -349,7 +304,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                     style={{
                       width: pos.touchMin,
                       height: pos.touchMin,
-                      borderRadius: pos.radius.md,
+                      borderRadius: 14,
                       border: 'none',
                       background: pos.errorSoft,
                       color: pos.errorDark,
@@ -369,17 +324,10 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                   value={item.specialInstructions || ''}
                   onChange={(e) => onUpdateInstructions(item.menuItemId, e.target.value)}
                   style={{
-                    width: '100%',
+                    ...posField,
                     minHeight: 40,
-                    padding: '8px 10px',
-                    border: `1px solid ${pos.border}`,
-                    borderRadius: pos.radius.sm,
-                    outline: 'none',
-                    backgroundColor: pos.surfaceAlt,
                     fontSize: 12,
-                    color: pos.ink,
-                    fontFamily: pos.font,
-                    boxSizing: 'border-box',
+                    borderRadius: 10,
                   }}
                 />
               </div>
@@ -388,16 +336,15 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
         )}
       </div>
 
-      {/* Sticky ticket footer */}
       {items.length > 0 && (
         <div
           data-testid="cart-totals"
           style={{
-            padding: pos.space[3],
-            borderTop: `2px solid ${pos.border}`,
-            background: pos.surface,
+            padding: 16,
+            borderTop: `1px solid ${pos.border}`,
+            background: `linear-gradient(180deg, ${pos.surfaceElevated} 0%, ${pos.surface} 100%)`,
             flexShrink: 0,
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
+            boxShadow: '0 -12px 32px rgba(0,0,0,0.35)',
           }}
         >
           {orderAllergens.length > 0 && (
@@ -405,9 +352,9 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
               style={{
                 backgroundColor: pos.warningSoft,
                 border: `1px solid ${pos.warning}`,
-                borderRadius: pos.radius.sm,
+                borderRadius: 12,
                 padding: 10,
-                marginBottom: 10,
+                marginBottom: 12,
                 display: 'flex',
                 gap: 8,
               }}
@@ -419,42 +366,18 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
             </div>
           )}
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 12,
-              color: pos.muted,
-              marginBottom: 4,
-            }}
-          >
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: pos.muted, marginBottom: 6 }}>
             <span>{t('cart.subtotal')}</span>
-            <span style={{ fontWeight: 600, color: pos.ink }}>{fmt(subtotal)}</span>
+            <span style={{ fontWeight: 700, color: pos.ink }}>{fmt(subtotal)}</span>
           </div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 12,
-              color: pos.muted,
-              marginBottom: 4,
-            }}
-          >
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: pos.muted, marginBottom: 6 }}>
             <span>{taxLabel}</span>
-            <span style={{ fontWeight: 600, color: pos.ink }}>{formatTaxDisplay(tax, fmt)}</span>
+            <span style={{ fontWeight: 700, color: pos.ink }}>{formatTaxDisplay(tax, fmt)}</span>
           </div>
           {orderType === 'DELIVERY' && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: 12,
-                color: pos.muted,
-                marginBottom: 4,
-              }}
-            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: pos.muted, marginBottom: 6 }}>
               <span>{t('cart.delivery_fee')}</span>
-              <span style={{ fontWeight: 600, color: pos.ink }}>
+              <span style={{ fontWeight: 700, color: pos.ink }}>
                 {deliveryFee === 0 ? '—' : fmt(deliveryFee)}
               </span>
             </div>
@@ -462,23 +385,20 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
           <div
             style={{
               height: 1,
-              background: pos.border,
-              margin: '10px 0',
+              background: `linear-gradient(90deg, transparent, ${pos.role}88, transparent)`,
+              margin: '12px 0',
             }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 14, fontWeight: 800, color: pos.ink }}>{t('cart.total')}</span>
-            <span style={{ fontSize: 22, fontWeight: 800, color: pos.roleDark }}>{fmt(total)}</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: pos.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {t('cart.total')}
+            </span>
+            <span style={{ fontSize: 28, fontWeight: 900, color: pos.role, letterSpacing: '-0.03em' }}>
+              {marketReady ? fmt(total) : '—'}
+            </span>
           </div>
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 11,
-              color: pos.faint,
-              textAlign: 'center',
-            }}
-          >
-            Complete payment →
+          <div style={{ marginTop: 8, fontSize: 11, color: pos.faint, textAlign: 'center' }}>
+            {marketReady ? 'Complete pay →' : 'Waiting for store market…'}
           </div>
         </div>
       )}

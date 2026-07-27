@@ -24,6 +24,11 @@ interface CartState {
   currency: string;   // ISO 4217 — default 'INR' for India stores
   locale: string;     // BCP 47 — default 'en-IN' for India stores
   storeCountryCode: string | null; // ISO 3166-1 alpha-2; null = India GST legacy
+  /**
+   * True only after setStoreCurrency from a store profile for the current selectedStoreId.
+   * localStorage may restore currency, but POS/pay must re-hydrate from store API.
+   */
+  storeMarketSynced: boolean;
 }
 
 // Load cart from localStorage
@@ -43,6 +48,8 @@ const loadCartFromStorage = (): CartState => {
         currency: savedCart.currency || 'INR',
         locale: savedCart.locale || 'en-IN',
         storeCountryCode: savedCart.storeCountryCode ?? null,
+        // Always re-sync market from store API after reload (never trust stale cache alone)
+        storeMarketSynced: false,
       };
     }
   } catch (e) {
@@ -59,6 +66,7 @@ const loadCartFromStorage = (): CartState => {
     currency: 'INR',
     locale: 'en-IN',
     storeCountryCode: null,
+    storeMarketSynced: false,
   };
 };
 
@@ -161,6 +169,9 @@ const cartSlice = createSlice({
     },
 
     setSelectedStore: (state, action: PayloadAction<{ storeId: string; storeName: string }>) => {
+      if (state.selectedStoreId !== action.payload.storeId) {
+        state.storeMarketSynced = false;
+      }
       state.selectedStoreId = action.payload.storeId;
       state.selectedStoreName = action.payload.storeName;
       saveCartToStorage(state);
@@ -169,6 +180,7 @@ const cartSlice = createSlice({
     clearSelectedStore: (state) => {
       state.selectedStoreId = null;
       state.selectedStoreName = null;
+      state.storeMarketSynced = false;
       saveCartToStorage(state);
     },
 
@@ -190,6 +202,7 @@ const cartSlice = createSlice({
       if (action.payload.countryCode !== undefined) {
         state.storeCountryCode = action.payload.countryCode;
       }
+      state.storeMarketSynced = true;
       saveCartToStorage(state);
     },
   },
@@ -222,5 +235,6 @@ export const selectCartLocale = (state: { cart: CartState }) => state.cart.local
 export const selectSelectedStoreId = (state: { cart: CartState }) => state.cart.selectedStoreId;
 export const selectSelectedStoreName = (state: { cart: CartState }) => state.cart.selectedStoreName;
 export const selectStoreCountryCode = (state: { cart: CartState }) => state.cart.storeCountryCode;
+export const selectStoreMarketSynced = (state: { cart: CartState }) => state.cart.storeMarketSynced;
 
 export default cartSlice.reducer;

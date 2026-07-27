@@ -1,0 +1,926 @@
+{
+  "style": "dark-elegant-restaurant",
+  "aspectRatio": "1:1",
+  "imageBasePath": "/images/menu",
+  "count": 102,
+  "items": [
+    {
+      "slug": "masala-dosa",
+      "name": "Masala Dosa",
+      "description": "Crispy fermented crepe with spiced potato filling",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "DOSA",
+      "priceCents": 890,
+      "recommended": true
+    },
+    {
+      "slug": "plain-dosa",
+      "name": "Plain Dosa",
+      "description": "Golden crisp plain dosa with coconut chutney",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "DOSA",
+      "priceCents": 690,
+      "recommended": false
+    },
+    {
+      "slug": "mysore-masala-dosa",
+      "name": "Mysore Masala Dosa",
+      "description": "Red chutney layered dosa with potato masala",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "DOSA",
+      "priceCents": 990,
+      "recommended": true
+    },
+    {
+      "slug": "rava-dosa",
+      "name": "Rava Dosa",
+      "description": "Lacy semolina dosa with onions and chillies",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "DOSA",
+      "priceCents": 950,
+      "recommended": false
+    },
+    {
+      "slug": "idly-sambar",
+      "name": "Idly Sambar",
+      "description": "Steamed rice cakes with lentil sambar",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "IDLY_VADA",
+      "priceCents": 590,
+      "recommended": true
+    },
+    {
+      "slug": "medu-vada",
+      "name": "Medu Vada",
+      "description": "Crispy lentil doughnut with chutney",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "IDLY_VADA",
+      "priceCents": 550,
+      "recommended": false
+    },
+    {
+      "slug": "idly-vada-combo",
+      "name": "Idly Vada Combo",
+      "description": "Two idlies and one vada with sambar",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "IDLY_VADA",
+      "priceCents": 790,
+      "recommended": false
+    },
+    {
+      "slug": "south-indian-thali",
+      "name": "South Indian Thali",
+      "description": "Complete meal with rice, sambar, rasam, and sides",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "SOUTH_INDIAN_MEALS",
+      "priceCents": 1490,
+      "recommended": true
+    },
+    {
+      "slug": "lemon-rice-meal",
+      "name": "Lemon Rice Meal",
+      "description": "Tangy lemon rice with papad and pickle",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "SOUTH_INDIAN_MEALS",
+      "priceCents": 890,
+      "recommended": false
+    },
+    {
+      "slug": "curd-rice",
+      "name": "Curd Rice",
+      "description": "Cooling yogurt rice with tempering",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "SOUTH_INDIAN_MEALS",
+      "priceCents": 690,
+      "recommended": false
+    },
+    {
+      "slug": "paneer-butter-masala",
+      "name": "Paneer Butter Masala",
+      "description": "Cottage cheese in rich tomato-butter gravy",
+      "cuisine": "NORTH_INDIAN",
+      "category": "CURRY_GRAVY",
+      "priceCents": 1290,
+      "recommended": true
+    },
+    {
+      "slug": "butter-chicken",
+      "name": "Butter Chicken",
+      "description": "Tandoori chicken in creamy tomato makhani sauce",
+      "cuisine": "NORTH_INDIAN",
+      "category": "CURRY_GRAVY",
+      "priceCents": 1490,
+      "recommended": true
+    },
+    {
+      "slug": "palak-paneer",
+      "name": "Palak Paneer",
+      "description": "Spinach gravy with soft paneer cubes",
+      "cuisine": "NORTH_INDIAN",
+      "category": "CURRY_GRAVY",
+      "priceCents": 1190,
+      "recommended": false
+    },
+    {
+      "slug": "chicken-tikka-masala",
+      "name": "Chicken Tikka Masala",
+      "description": "Grilled chicken tikka in spiced tomato cream",
+      "cuisine": "NORTH_INDIAN",
+      "category": "CURRY_GRAVY",
+      "priceCents": 1450,
+      "recommended": true
+    },
+    {
+      "slug": "dal-tadka",
+      "name": "Dal Tadka",
+      "description": "Yellow lentils finished with ghee tempering",
+      "cuisine": "NORTH_INDIAN",
+      "category": "DAL_DISHES",
+      "priceCents": 790,
+      "recommended": false
+    },
+    {
+      "slug": "dal-makhani",
+      "name": "Dal Makhani",
+      "description": "Slow-cooked black lentils with cream and butter",
+      "cuisine": "NORTH_INDIAN",
+      "category": "DAL_DISHES",
+      "priceCents": 990,
+      "recommended": true
+    },
+    {
+      "slug": "chana-masala",
+      "name": "Chana Masala",
+      "description": "Chickpeas in tangy onion-tomato masala",
+      "cuisine": "NORTH_INDIAN",
+      "category": "DAL_DISHES",
+      "priceCents": 850,
+      "recommended": false
+    },
+    {
+      "slug": "north-indian-thali",
+      "name": "North Indian Thali",
+      "description": "Curry, dal, rice, roti, raita and dessert",
+      "cuisine": "NORTH_INDIAN",
+      "category": "NORTH_INDIAN_MEALS",
+      "priceCents": 1690,
+      "recommended": true
+    },
+    {
+      "slug": "veg-biryani-plate",
+      "name": "Veg Biryani Plate",
+      "description": "Fragrant vegetable biryani with raita",
+      "cuisine": "NORTH_INDIAN",
+      "category": "NORTH_INDIAN_MEALS",
+      "priceCents": 1290,
+      "recommended": false
+    },
+    {
+      "slug": "chicken-biryani-plate",
+      "name": "Chicken Biryani Plate",
+      "description": "Hyderabadi-style chicken biryani with salan",
+      "cuisine": "NORTH_INDIAN",
+      "category": "NORTH_INDIAN_MEALS",
+      "priceCents": 1590,
+      "recommended": true
+    },
+    {
+      "slug": "veg-fried-rice",
+      "name": "Veg Fried Rice",
+      "description": "Wok-tossed rice with mixed vegetables",
+      "cuisine": "INDO_CHINESE",
+      "category": "FRIED_RICE",
+      "priceCents": 890,
+      "recommended": false
+    },
+    {
+      "slug": "chicken-fried-rice",
+      "name": "Chicken Fried Rice",
+      "description": "Classic Indo-Chinese chicken fried rice",
+      "cuisine": "INDO_CHINESE",
+      "category": "FRIED_RICE",
+      "priceCents": 1090,
+      "recommended": true
+    },
+    {
+      "slug": "egg-fried-rice",
+      "name": "Egg Fried Rice",
+      "description": "Fluffy rice with scrambled egg and spring onion",
+      "cuisine": "INDO_CHINESE",
+      "category": "FRIED_RICE",
+      "priceCents": 950,
+      "recommended": false
+    },
+    {
+      "slug": "veg-hakka-noodles",
+      "name": "Veg Hakka Noodles",
+      "description": "Stir-fried noodles with crunchy vegetables",
+      "cuisine": "INDO_CHINESE",
+      "category": "NOODLES",
+      "priceCents": 890,
+      "recommended": false
+    },
+    {
+      "slug": "chicken-hakka-noodles",
+      "name": "Chicken Hakka Noodles",
+      "description": "Indo-Chinese chicken hakka noodles",
+      "cuisine": "INDO_CHINESE",
+      "category": "NOODLES",
+      "priceCents": 1090,
+      "recommended": true
+    },
+    {
+      "slug": "schezwan-noodles",
+      "name": "Schezwan Noodles",
+      "description": "Spicy schezwan sauce noodles",
+      "cuisine": "INDO_CHINESE",
+      "category": "NOODLES",
+      "priceCents": 990,
+      "recommended": false
+    },
+    {
+      "slug": "gobi-manchurian",
+      "name": "Gobi Manchurian",
+      "description": "Crispy cauliflower in tangy manchurian sauce",
+      "cuisine": "INDO_CHINESE",
+      "category": "MANCHURIAN",
+      "priceCents": 990,
+      "recommended": true
+    },
+    {
+      "slug": "chicken-manchurian",
+      "name": "Chicken Manchurian",
+      "description": "Juicy chicken balls in manchurian gravy",
+      "cuisine": "INDO_CHINESE",
+      "category": "MANCHURIAN",
+      "priceCents": 1190,
+      "recommended": true
+    },
+    {
+      "slug": "veg-manchurian",
+      "name": "Veg Manchurian",
+      "description": "Vegetable dumplings in spicy gravy",
+      "cuisine": "INDO_CHINESE",
+      "category": "MANCHURIAN",
+      "priceCents": 950,
+      "recommended": false
+    },
+    {
+      "slug": "jeera-rice",
+      "name": "Jeera Rice",
+      "description": "Basmati rice tempered with cumin",
+      "cuisine": "NORTH_INDIAN",
+      "category": "RICE_VARIETIES",
+      "priceCents": 490,
+      "recommended": false
+    },
+    {
+      "slug": "steamed-basmati",
+      "name": "Steamed Basmati",
+      "description": "Fragrant long-grain steamed basmati",
+      "cuisine": "NORTH_INDIAN",
+      "category": "RICE_VARIETIES",
+      "priceCents": 390,
+      "recommended": false
+    },
+    {
+      "slug": "coconut-rice",
+      "name": "Coconut Rice",
+      "description": "South Indian coconut-flavoured rice",
+      "cuisine": "SOUTH_INDIAN",
+      "category": "RICE_VARIETIES",
+      "priceCents": 590,
+      "recommended": false
+    },
+    {
+      "slug": "butter-roti",
+      "name": "Butter Roti",
+      "description": "Soft whole-wheat roti brushed with butter",
+      "cuisine": "NORTH_INDIAN",
+      "category": "CHAPATI_ROTI",
+      "priceCents": 290,
+      "recommended": false
+    },
+    {
+      "slug": "tandoori-roti",
+      "name": "Tandoori Roti",
+      "description": "Clay-oven whole wheat roti",
+      "cuisine": "NORTH_INDIAN",
+      "category": "CHAPATI_ROTI",
+      "priceCents": 320,
+      "recommended": false
+    },
+    {
+      "slug": "missi-roti",
+      "name": "Missi Roti",
+      "description": "Spiced gram-flour flatbread",
+      "cuisine": "NORTH_INDIAN",
+      "category": "CHAPATI_ROTI",
+      "priceCents": 350,
+      "recommended": false
+    },
+    {
+      "slug": "butter-naan",
+      "name": "Butter Naan",
+      "description": "Soft tandoor naan with melted butter",
+      "cuisine": "NORTH_INDIAN",
+      "category": "NAAN_KULCHA",
+      "priceCents": 450,
+      "recommended": true
+    },
+    {
+      "slug": "garlic-naan",
+      "name": "Garlic Naan",
+      "description": "Naan topped with garlic and coriander",
+      "cuisine": "NORTH_INDIAN",
+      "category": "NAAN_KULCHA",
+      "priceCents": 490,
+      "recommended": true
+    },
+    {
+      "slug": "cheese-naan",
+      "name": "Cheese Naan",
+      "description": "Stuffed naan with molten cheese",
+      "cuisine": "NORTH_INDIAN",
+      "category": "NAAN_KULCHA",
+      "priceCents": 590,
+      "recommended": false
+    },
+    {
+      "slug": "margherita-pizza",
+      "name": "Margherita Pizza",
+      "description": "Classic tomato, mozzarella and basil",
+      "cuisine": "ITALIAN",
+      "category": "PIZZA",
+      "priceCents": 1290,
+      "recommended": true
+    },
+    {
+      "slug": "pepperoni-pizza",
+      "name": "Pepperoni Pizza",
+      "description": "Pepperoni and melted mozzarella",
+      "cuisine": "ITALIAN",
+      "category": "PIZZA",
+      "priceCents": 1490,
+      "recommended": true
+    },
+    {
+      "slug": "quattro-formaggi",
+      "name": "Quattro Formaggi",
+      "description": "Four-cheese Italian pizza",
+      "cuisine": "ITALIAN",
+      "category": "PIZZA",
+      "priceCents": 1590,
+      "recommended": true
+    },
+    {
+      "slug": "veggie-supreme-pizza",
+      "name": "Veggie Supreme Pizza",
+      "description": "Bell peppers, olives, onion and mushrooms",
+      "cuisine": "ITALIAN",
+      "category": "PIZZA",
+      "priceCents": 1450,
+      "recommended": false
+    },
+    {
+      "slug": "bbq-burger",
+      "name": "BBQ Burger",
+      "description": "Beef burger with smoky BBQ sauce",
+      "cuisine": "AMERICAN",
+      "category": "BURGER",
+      "priceCents": 1190,
+      "recommended": true
+    },
+    {
+      "slug": "classic-cheeseburger",
+      "name": "Classic Cheeseburger",
+      "description": "Juicy beef patty with cheddar",
+      "cuisine": "AMERICAN",
+      "category": "BURGER",
+      "priceCents": 1090,
+      "recommended": true
+    },
+    {
+      "slug": "crispy-chicken-burger",
+      "name": "Crispy Chicken Burger",
+      "description": "Crispy fried chicken with mayo",
+      "cuisine": "AMERICAN",
+      "category": "BURGER",
+      "priceCents": 1150,
+      "recommended": false
+    },
+    {
+      "slug": "veggie-burger",
+      "name": "Veggie Burger",
+      "description": "Grilled vegetable patty with greens",
+      "cuisine": "AMERICAN",
+      "category": "BURGER",
+      "priceCents": 990,
+      "recommended": false
+    },
+    {
+      "slug": "garlic-bread",
+      "name": "Garlic Bread",
+      "description": "Toasted garlic bread with herbs",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 490,
+      "recommended": false
+    },
+    {
+      "slug": "french-fries",
+      "name": "French Fries",
+      "description": "Crispy golden fries with sea salt",
+      "cuisine": "AMERICAN",
+      "category": "SIDES",
+      "priceCents": 390,
+      "recommended": false
+    },
+    {
+      "slug": "caesar-salad",
+      "name": "Caesar Salad",
+      "description": "Romaine, parmesan and croutons",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 790,
+      "recommended": false
+    },
+    {
+      "slug": "onion-rings",
+      "name": "Onion Rings",
+      "description": "Crispy battered onion rings",
+      "cuisine": "AMERICAN",
+      "category": "SIDES",
+      "priceCents": 450,
+      "recommended": false
+    },
+    {
+      "slug": "espresso",
+      "name": "Espresso",
+      "description": "Double shot of rich espresso",
+      "cuisine": "BEVERAGES",
+      "category": "HOT_DRINKS",
+      "priceCents": 290,
+      "recommended": false
+    },
+    {
+      "slug": "cappuccino",
+      "name": "Cappuccino",
+      "description": "Espresso with steamed milk foam",
+      "cuisine": "BEVERAGES",
+      "category": "HOT_DRINKS",
+      "priceCents": 390,
+      "recommended": true
+    },
+    {
+      "slug": "hot-chocolate",
+      "name": "Hot Chocolate",
+      "description": "Velvety dark hot chocolate",
+      "cuisine": "BEVERAGES",
+      "category": "HOT_DRINKS",
+      "priceCents": 420,
+      "recommended": false
+    },
+    {
+      "slug": "cola",
+      "name": "Cola",
+      "description": "Chilled soft drink 0.33L",
+      "cuisine": "BEVERAGES",
+      "category": "COLD_DRINKS",
+      "priceCents": 250,
+      "recommended": false
+    },
+    {
+      "slug": "fresh-lemonade",
+      "name": "Fresh Lemonade",
+      "description": "Freshly squeezed lemonade with mint",
+      "cuisine": "BEVERAGES",
+      "category": "COLD_DRINKS",
+      "priceCents": 350,
+      "recommended": false
+    },
+    {
+      "slug": "mango-lassi",
+      "name": "Mango Lassi",
+      "description": "Sweet mango yogurt smoothie",
+      "cuisine": "BEVERAGES",
+      "category": "COLD_DRINKS",
+      "priceCents": 450,
+      "recommended": true
+    },
+    {
+      "slug": "cold-coffee",
+      "name": "Cold Coffee",
+      "description": "Iced coffee blended with cream",
+      "cuisine": "BEVERAGES",
+      "category": "COLD_DRINKS",
+      "priceCents": 420,
+      "recommended": false
+    },
+    {
+      "slug": "masala-chai",
+      "name": "Masala Chai",
+      "description": "Traditional Indian spiced tea",
+      "cuisine": "BEVERAGES",
+      "category": "TEA_CHAI",
+      "priceCents": 250,
+      "recommended": true
+    },
+    {
+      "slug": "ginger-tea",
+      "name": "Ginger Tea",
+      "description": "Hot tea infused with fresh ginger",
+      "cuisine": "BEVERAGES",
+      "category": "TEA_CHAI",
+      "priceCents": 280,
+      "recommended": false
+    },
+    {
+      "slug": "green-tea",
+      "name": "Green Tea",
+      "description": "Light aromatic green tea",
+      "cuisine": "BEVERAGES",
+      "category": "TEA_CHAI",
+      "priceCents": 290,
+      "recommended": false
+    },
+    {
+      "slug": "chocolate-brownie",
+      "name": "Chocolate Brownie",
+      "description": "Warm fudgy chocolate brownie",
+      "cuisine": "DESSERTS",
+      "category": "COOKIES_BROWNIES",
+      "priceCents": 550,
+      "recommended": true
+    },
+    {
+      "slug": "chocolate-chip-cookie",
+      "name": "Chocolate Chip Cookie",
+      "description": "Freshly baked chocolate chip cookie",
+      "cuisine": "DESSERTS",
+      "category": "COOKIES_BROWNIES",
+      "priceCents": 350,
+      "recommended": false
+    },
+    {
+      "slug": "walnut-brownie",
+      "name": "Walnut Brownie",
+      "description": "Dense brownie studded with walnuts",
+      "cuisine": "DESSERTS",
+      "category": "COOKIES_BROWNIES",
+      "priceCents": 590,
+      "recommended": false
+    },
+    {
+      "slug": "vanilla-ice-cream",
+      "name": "Vanilla Ice Cream",
+      "description": "Classic Madagascar vanilla scoop",
+      "cuisine": "DESSERTS",
+      "category": "ICE_CREAM",
+      "priceCents": 390,
+      "recommended": false
+    },
+    {
+      "slug": "chocolate-ice-cream",
+      "name": "Chocolate Ice Cream",
+      "description": "Rich dark chocolate ice cream",
+      "cuisine": "DESSERTS",
+      "category": "ICE_CREAM",
+      "priceCents": 420,
+      "recommended": false
+    },
+    {
+      "slug": "mango-ice-cream",
+      "name": "Mango Ice Cream",
+      "description": "Creamy Alphonso mango ice cream",
+      "cuisine": "DESSERTS",
+      "category": "ICE_CREAM",
+      "priceCents": 450,
+      "recommended": true
+    },
+    {
+      "slug": "tiramisu",
+      "name": "Tiramisu",
+      "description": "Coffee mascarpone Italian dessert",
+      "cuisine": "ITALIAN",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 650,
+      "recommended": true
+    },
+    {
+      "slug": "gulab-jamun",
+      "name": "Gulab Jamun",
+      "description": "Milk dumplings in rose sugar syrup",
+      "cuisine": "DESSERTS",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 450,
+      "recommended": true
+    },
+    {
+      "slug": "rasmalai",
+      "name": "Rasmalai",
+      "description": "Soft cheese patties in saffron milk",
+      "cuisine": "DESSERTS",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 550,
+      "recommended": false
+    },
+    {
+      "slug": "cheesecake",
+      "name": "New York Cheesecake",
+      "description": "Creamy baked cheesecake with berry glaze",
+      "cuisine": "DESSERTS",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 690,
+      "recommended": true
+    },
+    {
+      "slug": "creamy-mushroom-pasta",
+      "name": "Creamy Mushroom Pasta",
+      "description": "Fettuccine in silky mushroom cream sauce",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 1190,
+      "recommended": true
+    },
+    {
+      "slug": "grilled-beef-steak",
+      "name": "Grilled Beef Steak",
+      "description": "Char-grilled steak with roasted tomatoes",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1890,
+      "recommended": true
+    },
+    {
+      "slug": "spaghetti-carbonara",
+      "name": "Spaghetti Carbonara",
+      "description": "Classic Roman pasta with egg, pecorino and guanciale",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 1390,
+      "recommended": true
+    },
+    {
+      "slug": "lasagna-bolognese",
+      "name": "Lasagna Bolognese",
+      "description": "Layered pasta with rich beef ragu and bechamel",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 1490,
+      "recommended": true
+    },
+    {
+      "slug": "mushroom-risotto",
+      "name": "Mushroom Risotto",
+      "description": "Creamy Arborio risotto with wild mushrooms",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 1350,
+      "recommended": true
+    },
+    {
+      "slug": "chicken-parmesan",
+      "name": "Chicken Parmesan",
+      "description": "Breaded chicken with tomato sauce and melted mozzarella",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 1550,
+      "recommended": true
+    },
+    {
+      "slug": "bruschetta",
+      "name": "Bruschetta",
+      "description": "Toasted bread with tomato, basil and olive oil",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 690,
+      "recommended": false
+    },
+    {
+      "slug": "gnocchi-pesto",
+      "name": "Gnocchi Pesto",
+      "description": "Potato gnocchi tossed in basil pesto",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 1290,
+      "recommended": false
+    },
+    {
+      "slug": "caprese-salad",
+      "name": "Caprese Salad",
+      "description": "Fresh mozzarella, tomato and basil with balsamic",
+      "cuisine": "ITALIAN",
+      "category": "SIDES",
+      "priceCents": 890,
+      "recommended": false
+    },
+    {
+      "slug": "panna-cotta",
+      "name": "Panna Cotta",
+      "description": "Silky vanilla cream with berry coulis",
+      "cuisine": "ITALIAN",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 650,
+      "recommended": true
+    },
+    {
+      "slug": "wiener-schnitzel",
+      "name": "Wiener Schnitzel",
+      "description": "Golden breaded veal cutlet with lemon",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1790,
+      "recommended": true
+    },
+    {
+      "slug": "bratwurst-platter",
+      "name": "Bratwurst Platter",
+      "description": "Grilled German sausages with mustard",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1290,
+      "recommended": true
+    },
+    {
+      "slug": "currywurst",
+      "name": "Currywurst",
+      "description": "Berlin-style curry sausage with fries",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 990,
+      "recommended": true
+    },
+    {
+      "slug": "soft-pretzel",
+      "name": "Soft Pretzel",
+      "description": "Warm Bavarian pretzel with coarse salt",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 450,
+      "recommended": false
+    },
+    {
+      "slug": "german-potato-salad",
+      "name": "German Potato Salad",
+      "description": "Warm potato salad with bacon and vinegar",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 690,
+      "recommended": false
+    },
+    {
+      "slug": "spaetzle",
+      "name": "K\u00e4sesp\u00e4tzle",
+      "description": "Soft egg noodles baked with melted cheese",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1190,
+      "recommended": false
+    },
+    {
+      "slug": "apple-strudel",
+      "name": "Apple Strudel",
+      "description": "Flaky pastry with spiced apples and raisins",
+      "cuisine": "CONTINENTAL",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 690,
+      "recommended": true
+    },
+    {
+      "slug": "fish-and-chips",
+      "name": "Fish and Chips",
+      "description": "Beer-battered cod with thick-cut chips",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1490,
+      "recommended": true
+    },
+    {
+      "slug": "shepherds-pie",
+      "name": "Shepherd's Pie",
+      "description": "Lamb mince topped with golden mashed potato",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1390,
+      "recommended": false
+    },
+    {
+      "slug": "french-onion-soup",
+      "name": "French Onion Soup",
+      "description": "Caramelised onion broth with gruy\u00e8re crouton",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 890,
+      "recommended": true
+    },
+    {
+      "slug": "quiche-lorraine",
+      "name": "Quiche Lorraine",
+      "description": "Savoury tart with bacon, egg and cream",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1090,
+      "recommended": false
+    },
+    {
+      "slug": "ratatouille",
+      "name": "Ratatouille",
+      "description": "Proven\u00e7al stewed vegetables with herbs",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1190,
+      "recommended": false
+    },
+    {
+      "slug": "croque-monsieur",
+      "name": "Croque Monsieur",
+      "description": "Toasted ham and cheese sandwich with b\u00e9chamel",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 990,
+      "recommended": false
+    },
+    {
+      "slug": "beef-bourguignon",
+      "name": "Beef Bourguignon",
+      "description": "Slow-braised beef in red wine sauce",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1890,
+      "recommended": true
+    },
+    {
+      "slug": "creme-brulee",
+      "name": "Cr\u00e8me Br\u00fbl\u00e9e",
+      "description": "Vanilla custard with caramelised sugar crust",
+      "cuisine": "CONTINENTAL",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 750,
+      "recommended": true
+    },
+    {
+      "slug": "paella",
+      "name": "Seafood Paella",
+      "description": "Spanish saffron rice with seafood",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1790,
+      "recommended": true
+    },
+    {
+      "slug": "spanish-tortilla",
+      "name": "Spanish Tortilla",
+      "description": "Classic potato and egg omelette",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 890,
+      "recommended": false
+    },
+    {
+      "slug": "patatas-bravas",
+      "name": "Patatas Bravas",
+      "description": "Crispy potatoes with spicy tomato sauce",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 690,
+      "recommended": false
+    },
+    {
+      "slug": "moussaka",
+      "name": "Moussaka",
+      "description": "Layered aubergine, mince and b\u00e9chamel",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1490,
+      "recommended": true
+    },
+    {
+      "slug": "greek-salad",
+      "name": "Greek Salad",
+      "description": "Tomato, cucumber, feta, olives and oregano",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 890,
+      "recommended": false
+    },
+    {
+      "slug": "souvlaki-plate",
+      "name": "Chicken Souvlaki",
+      "description": "Grilled chicken skewers with tzatziki and pita",
+      "cuisine": "CONTINENTAL",
+      "category": "SIDES",
+      "priceCents": 1390,
+      "recommended": true
+    },
+    {
+      "slug": "baklava",
+      "name": "Baklava",
+      "description": "Honey-soaked filo pastry with nuts",
+      "cuisine": "DESSERTS",
+      "category": "DESSERT_SPECIALS",
+      "priceCents": 650,
+      "recommended": true
+    }
+  ]
+}

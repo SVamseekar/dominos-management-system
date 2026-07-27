@@ -1,0 +1,46 @@
+{
+  "output": {
+    "style": "markdown",
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "showLineNumbers": true,
+    "copyToClipboard": false,
+    "parsableStyle": false
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/*.env*",
+      "!**/*.env.example",
+      "**/target/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/node_modules/**",
+      "**/*.log",
+      "**/logs/**",
+      "**/backups/**",
+      "**/.worktrees/**",
+      "**/.playwright-mcp/**",
+      "**/test-results/**",
+      "**/playwright-report/**",
+      "**/*.pdf",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.webp",
+      "**/pacts/**",
+      "**/.firebaserc",
+      "**/.vercel/**",
+      "**/firebase-debug.log",
+      "**/application-secret*.yml",
+      "**/*credentials*",
+      "**/*.pem",
+      "**/*.key",
+      "**/docker-compose*.yml"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}

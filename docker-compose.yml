@@ -67,21 +67,30 @@ services:
 
   # ============================================================
   # Backend Services
+  # Env names MUST match placeholders in each service application.yml
+  # (CORE_MONGODB_URI, REDIS_HOST, RABBITMQ_HOST, …) — not only SPRING_* aliases.
   # ============================================================
   core-service:
     build:
-      context: core-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: core-service/Dockerfile
     container_name: masova-core
     ports:
       - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - CORE_MONGODB_URI=mongodb://masova-mongodb:27017/masova_core
       - SPRING_DATA_MONGODB_URI=mongodb://masova-mongodb:27017/masova_core
+      - REDIS_HOST=masova-redis
+      - REDIS_PORT=6379
+      - SPRING_DATA_REDIS_HOST=masova-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - SPRING_REDIS_HOST=masova-redis
-      - SPRING_RABBITMQ_HOST=masova-rabbitmq
-      - SPRING_RABBITMQ_USERNAME=masova
-      - SPRING_RABBITMQ_PASSWORD=masova_secret
+      - SPRING_REDIS_PORT=6379
+      - RABBITMQ_HOST=masova-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=masova
+      - RABBITMQ_PASSWORD=masova_secret
       - JWT_SECRET=dev-jwt-secret-key-at-least-64-characters-long-for-hs512-security
       - SPRING_DATASOURCE_URL=jdbc:postgresql://masova-postgres:5432/masova_db?currentSchema=core_schema
       - SPRING_DATASOURCE_USERNAME=masova
@@ -103,18 +112,26 @@ services:
 
   commerce-service:
     build:
-      context: commerce-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: commerce-service/Dockerfile
     container_name: masova-commerce
     ports:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - MENU_MONGODB_URI=mongodb://masova-mongodb:27017/masova_commerce
+      - ORDERS_MONGODB_URI=mongodb://masova-mongodb:27017/masova_commerce
       - SPRING_DATA_MONGODB_URI=mongodb://masova-mongodb:27017/masova_commerce
+      - REDIS_HOST=masova-redis
+      - REDIS_PORT=6379
+      - SPRING_DATA_REDIS_HOST=masova-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - SPRING_REDIS_HOST=masova-redis
-      - SPRING_RABBITMQ_HOST=masova-rabbitmq
-      - SPRING_RABBITMQ_USERNAME=masova
-      - SPRING_RABBITMQ_PASSWORD=masova_secret
+      - SPRING_REDIS_PORT=6379
+      - RABBITMQ_HOST=masova-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=masova
+      - RABBITMQ_PASSWORD=masova_secret
       - JWT_SECRET=dev-jwt-secret-key-at-least-64-characters-long-for-hs512-security
       - CORE_SERVICE_URL=http://masova-core:8085
       - SPRING_DATASOURCE_URL=jdbc:postgresql://masova-postgres:5432/masova_db?currentSchema=commerce_schema
@@ -139,26 +156,33 @@ services:
 
   payment-service:
     build:
-      context: payment-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: payment-service/Dockerfile
     container_name: masova-payment
     ports:
       - "8089:8089"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - MONGODB_URI=mongodb://masova-mongodb:27017/masova_payment
       - SPRING_DATA_MONGODB_URI=mongodb://masova-mongodb:27017/masova_payment
+      - REDIS_HOST=masova-redis
+      - REDIS_PORT=6379
+      - SPRING_DATA_REDIS_HOST=masova-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - SPRING_REDIS_HOST=masova-redis
-      - SPRING_RABBITMQ_HOST=masova-rabbitmq
-      - SPRING_RABBITMQ_USERNAME=masova
-      - SPRING_RABBITMQ_PASSWORD=masova_secret
+      - SPRING_REDIS_PORT=6379
+      - RABBITMQ_HOST=masova-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=masova
+      - RABBITMQ_PASSWORD=masova_secret
       - JWT_SECRET=dev-jwt-secret-key-at-least-64-characters-long-for-hs512-security
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
       - RAZORPAY_ENABLED=${RAZORPAY_ENABLED:-false}
-      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
-      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
-      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-rzp_test_placeholder}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-placeholder_secret}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET:-whsec_placeholder}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://masova-postgres:5432/masova_db?currentSchema=payment_schema
       - SPRING_DATASOURCE_USERNAME=masova
       - SPRING_DATASOURCE_PASSWORD=masova_secret
@@ -179,18 +203,25 @@ services:
 
   logistics-service:
     build:
-      context: logistics-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: logistics-service/Dockerfile
     container_name: masova-logistics
     ports:
       - "8086:8086"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - LOGISTICS_MONGODB_URI=mongodb://masova-mongodb:27017/masova_logistics
       - SPRING_DATA_MONGODB_URI=mongodb://masova-mongodb:27017/masova_logistics
+      - REDIS_HOST=masova-redis
+      - REDIS_PORT=6379
+      - SPRING_DATA_REDIS_HOST=masova-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - SPRING_REDIS_HOST=masova-redis
-      - SPRING_RABBITMQ_HOST=masova-rabbitmq
-      - SPRING_RABBITMQ_USERNAME=masova
-      - SPRING_RABBITMQ_PASSWORD=masova_secret
+      - SPRING_REDIS_PORT=6379
+      - RABBITMQ_HOST=masova-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=masova
+      - RABBITMQ_PASSWORD=masova_secret
       - JWT_SECRET=dev-jwt-secret-key-at-least-64-characters-long-for-hs512-security
       - CORE_SERVICE_URL=http://masova-core:8085
       - SPRING_DATASOURCE_URL=jdbc:postgresql://masova-postgres:5432/masova_db?currentSchema=logistics_schema
@@ -215,18 +246,25 @@ services:
 
   intelligence-service:
     build:
-      context: intelligence-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: intelligence-service/Dockerfile
     container_name: masova-intelligence
     ports:
       - "8087:8087"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - ANALYTICS_MONGODB_URI=mongodb://masova-mongodb:27017/masova_analytics
       - SPRING_DATA_MONGODB_URI=mongodb://masova-mongodb:27017/masova_analytics
+      - REDIS_HOST=masova-redis
+      - REDIS_PORT=6379
+      - SPRING_DATA_REDIS_HOST=masova-redis
+      - SPRING_DATA_REDIS_PORT=6379
       - SPRING_REDIS_HOST=masova-redis
-      - SPRING_RABBITMQ_HOST=masova-rabbitmq
-      - SPRING_RABBITMQ_USERNAME=masova
-      - SPRING_RABBITMQ_PASSWORD=masova_secret
+      - SPRING_REDIS_PORT=6379
+      - RABBITMQ_HOST=masova-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=masova
+      - RABBITMQ_PASSWORD=masova_secret
       - JWT_SECRET=dev-jwt-secret-key-at-least-64-characters-long-for-hs512-security
     depends_on:
       mongodb:
@@ -241,8 +279,8 @@ services:
 
   api-gateway:
     build:
-      context: api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api-gateway/Dockerfile
     container_name: masova-gateway
     ports:
       - "8080:8080"

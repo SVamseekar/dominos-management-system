@@ -11,11 +11,13 @@ import {
   selectCartLocale,
   selectStoreCountryCode,
   selectDeliveryFeeINR,
+  selectStoreMarketSynced,
 } from '../../store/slices/cartSlice';
-import { formatMajorAmount, apiPriceToCartMajor } from '../../utils/currency';
-import { storeCurrencyPayload } from '../../utils/storeCurrency';
+import { apiPriceToCartMajor } from '../../utils/currency';
+import { storeCurrencyPayload, resolveStoreMarket } from '../../utils/storeCurrency';
 import { computePreCheckoutTotals } from '../../utils/orderTax';
-import { useGetStoreQuery } from '../../store/api/storeApi';
+import { useGetStoreQuery, useGetActiveStoresQuery } from '../../store/api/storeApi';
+import { usePosMarket } from './usePosMarket';
 import MenuPanel from './components/MenuPanel';
 import OrderPanel from './components/OrderPanel';
 import CustomerPanel from './components/CustomerPanel';
@@ -46,7 +48,7 @@ import { getRtkErrorMessage } from '../shared/rtkError';
 import { useRecordCashPaymentMutation } from '../../store/api/paymentApi';
 import { useGetActiveStoreSessionsQuery } from '../../store/api/sessionApi';
 import { useSnackbar } from 'notistack';
-import { pos, posPanelShell, posTouchBtnBase } from './posTokens';
+import { pos, posPanelShell, posTouchBtnBase, posAmbientRoot, posTouchBtnPrimary } from './posTokens';
 import {
   POS_TABS,
   type PosTab,
@@ -55,11 +57,12 @@ import {
   resolvePosDeliveryFee,
   formatPosTime,
   sumOrderTotals,
+  isSameBusinessDay,
 } from './posHelpers';
 
 /**
  * POS Dashboard — dense cashier board for live shifts (F2e).
- * Orders | History | Reports; staff design-tokens + Cashier #2196F3.
+ * Orders | History | Reports; dark-premium tokens + warm orange accent.
  */
 const POSDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -68,32 +71,66 @@ const POSDashboard: React.FC = () => {
   const locale = useAppSelector(selectCartLocale);
   const cartDeliveryFee = useAppSelector(selectDeliveryFeeINR);
   const storeCountryCode = useAppSelector(selectStoreCountryCode);
-  const fmt = (v: number) => formatMajorAmount(v, currency, locale);
+  const { marketReady, fmt, fmtOrder } = usePosMarket();
   const [searchParams] = useSearchParams();
   const { user } = useAppSelector((state) => state.auth);
   const { enqueueSnackbar } = useSnackbar();
 
   const selectedStoreId = useAppSelector(selectSelectedStoreId);
   const selectedStoreName = useAppSelector(selectSelectedStoreName);
+  const storeMarketSynced = useAppSelector(selectStoreMarketSynced);
 
   const isManager = user?.type === 'MANAGER';
 
   const urlStoreId = searchParams.get('storeId');
-  const storeId = urlStoreId || selectedStoreId || user?.storeId;
+  // Prefer explicit store; never invent one — resolve from URL → cart → staff JWT → store list
+  const storeId = urlStoreId || selectedStoreId || user?.storeId || undefined;
 
-  const { data: storeProfile } = useGetStoreQuery(storeId ?? '', { skip: !storeId });
+  const { data: storeProfile } = useGetStoreQuery(storeId ?? '', {
+    skip: !storeId,
+  });
+
+  const { data: activeStores = [], isLoading: storesListLoading } = useGetActiveStoresQuery(undefined, {
+    skip: Boolean(storeId),
+  });
+
+  // Bootstrap store selection from staff JWT or single active store (seed often has DOM001 only)
+  useEffect(() => {
+    if (storeId) return;
+    if (user?.storeId) {
+      dispatch(
+        setSelectedStore({
+          storeId: user.storeId,
+          storeName: selectedStoreName || user.storeId,
+        })
+      );
+      return;
+    }
+    if (storesListLoading || !activeStores.length) return;
+    // Only auto-bind when there is exactly one active store (typical single-site seed)
+    const open = activeStores.filter((s) => s.status === 'ACTIVE' || !s.status);
+    if (open.length !== 1) return;
+    dispatch(setSelectedStore({ storeId: open[0].id, storeName: open[0].name }));
+  }, [storeId, user, activeStores, storesListLoading, selectedStoreName, dispatch]);
 
   useEffect(() => {
     if (urlStoreId && urlStoreId !== selectedStoreId) {
-      dispatch(setSelectedStore({ storeId: urlStoreId, storeName: 'Store ' + urlStoreId }));
+      dispatch(setSelectedStore({ storeId: urlStoreId, storeName: selectedStoreName || urlStoreId }));
     }
-  }, [urlStoreId, selectedStoreId, dispatch]);
+  }, [urlStoreId, selectedStoreId, selectedStoreName, dispatch]);
 
+  // Hydrate currency / locale / country only from store API record (no hard-coded market)
   useEffect(() => {
     if (!storeProfile || !storeId) return;
+    const market = resolveStoreMarket(storeProfile);
     dispatch(setSelectedStore({ storeId, storeName: storeProfile.name }));
-    dispatch(setStoreCurrency(storeCurrencyPayload(storeProfile)));
+    if (market.resolved) {
+      dispatch(setStoreCurrency(storeCurrencyPayload(storeProfile)));
+    }
   }, [storeProfile, storeId, dispatch]);
+
+  const storeMarketReady =
+    Boolean(storeId && storeProfile && storeMarketSynced && resolveStoreMarket(storeProfile).resolved);
 
   const [activeTab, setActiveTab] = useState<PosTab>('orders');
   const [clockInModalOpen, setClockInModalOpen] = useState(false);
@@ -168,10 +205,9 @@ const POSDashboard: React.FC = () => {
     skip: !storeId || activeTab !== 'reports',
   });
 
-  const today = new Date().toDateString();
-  const todayOrders = orders.filter((order: Order) => {
-    return new Date(order.createdAt).toDateString() === today;
-  });
+  const todayOrders = orders.filter((order: Order) =>
+    isSameBusinessDay(order.createdAt, storeCountryCode)
+  );
   const totalSales = sumOrderTotals(todayOrders);
 
   const handleNewOrder = useCallback(() => {
@@ -222,10 +258,10 @@ const POSDashboard: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [activeTab, handleNewOrder]);
 
-  const handleAddItem = (item: MenuItem, quantity: number = 1) => {
+  const handleAddItem = (item: MenuItem, quantity: number = 1, instructions?: string) => {
     const existingIndex = orderItems.findIndex((orderItem) => orderItem.menuItemId === item.id);
 
-    if (existingIndex >= 0) {
+    if (existingIndex >= 0 && !instructions) {
       const updatedItems = [...orderItems];
       updatedItems[existingIndex].quantity += quantity;
       setOrderItems(updatedItems);
@@ -237,7 +273,7 @@ const POSDashboard: React.FC = () => {
           name: item.name,
           price: apiPriceToCartMajor(item.basePrice, currency),
           quantity,
-          specialInstructions: '',
+          specialInstructions: instructions || '',
           image: item.imageUrl,
           allergens: item.allergens ?? [],
         },
@@ -293,7 +329,7 @@ const POSDashboard: React.FC = () => {
     const confirmed = window.confirm(
       `Mark this order as PAID?\n\n` +
         `Order: #${order.orderNumber}\n` +
-        `Amount: ${fmt(order.total)}\n` +
+        `Amount: ${fmtOrder(order.total, order)}\n` +
         `Payment Method: ${order.paymentMethod}\n\n` +
         `This confirms that CASH payment has been received.`
     );
@@ -314,7 +350,7 @@ const POSDashboard: React.FC = () => {
       }).unwrap();
 
       enqueueSnackbar(
-        `Order #${order.orderNumber} marked as PAID — Cash payment of ${fmt(order.total)} recorded.`,
+        `Order #${order.orderNumber} marked as PAID — Cash payment of ${fmtOrder(order.total, order)} recorded.`,
         { variant: 'success' }
       );
     } catch (error: unknown) {
@@ -394,86 +430,112 @@ const POSDashboard: React.FC = () => {
     </div>
   );
 
+  const hour = new Date().getHours();
+  const dayPart =
+    hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const staffName = orderUser?.name || user?.name || 'Cashier';
+
   return (
-    <div
-      data-testid="pos-root"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        backgroundColor: pos.surfaceBg,
-        fontFamily: pos.font,
-      }}
-    >
+    <div data-testid="pos-root" style={posAmbientRoot}>
       <style>{`
         @keyframes posPulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.45; }
         }
+        @media (max-width: 1100px) {
+          [data-testid="pos-orders-board"] > div {
+            flex-direction: column !important;
+          }
+          [data-testid="pos-menu-column"],
+          [data-testid="pos-cart-column"],
+          [data-testid="pos-pay-column"] {
+            flex: 1 1 auto !important;
+            min-height: 320px !important;
+          }
+        }
       `}</style>
 
-      {/* Header */}
+      {/* Stable 3-column header — tabs never shift when Orders/History/Reports content changes */}
       <header
         data-testid="pos-header"
         style={{
-          minHeight: 64,
-          backgroundColor: pos.headerBg,
-          borderBottom: `3px solid ${pos.role}`,
-          display: 'flex',
+          minHeight: 72,
+          background: pos.headerBg,
+          backdropFilter: 'blur(16px)',
+          borderBottom: `1px solid ${pos.border}`,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(200px, 1fr) auto minmax(200px, 1fr)',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: `0 ${pos.space[4]}`,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          columnGap: 16,
+          padding: '10px 20px',
           flexShrink: 0,
-          gap: pos.space[3],
-          flexWrap: 'wrap',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: pos.space[3] }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
           <div
             style={{
-              fontSize: pos.type.fontSize.xl,
-              fontWeight: pos.type.fontWeight.extrabold,
-              color: pos.inverse,
-              letterSpacing: '-0.3px',
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: `linear-gradient(145deg, ${pos.role}, ${pos.roleDark})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 900,
+              fontSize: 15,
+              color: '#fff',
+              flexShrink: 0,
             }}
           >
-            MaSoVa{' '}
-            <span style={{ color: pos.role }}>POS</span>
+            M
           </div>
-          <div
-            style={{
-              height: 28,
-              width: 1,
-              backgroundColor: pos.headerBgAlt,
-            }}
-          />
-          <div
-            data-testid="pos-store-label"
-            style={{
-              fontSize: pos.type.fontSize.sm,
-              color: pos.headerMuted,
-              fontWeight: pos.type.fontWeight.semibold,
-            }}
-          >
-            {selectedStoreName || storeId || 'Point of Sale'}
-            {storeCountryCode ? (
-              <span style={{ marginLeft: 8, color: pos.role, fontSize: pos.type.fontSize.xs }}>
-                {storeCountryCode} · {currency}
-              </span>
-            ) : null}
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: pos.headerMuted,
+              }}
+            >
+              MaSoVa <span style={{ color: pos.role }}>POS</span>
+            </div>
+            <div
+              data-testid="pos-store-label"
+              style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: pos.ink,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {selectedStoreName || storeId || 'Point of Sale'}
+            </div>
+            <div style={{ fontSize: 12, color: pos.muted, marginTop: 1 }}>
+              {dayPart}
+              {orderUser || user ? ` · ${staffName.split(' ')[0]}` : ''}
+              {storeMarketReady && storeCountryCode ? ` · ${storeCountryCode}` : ''}
+              {storeMarketReady && currency ? ` · ${currency}` : ''}
+              {!storeMarketReady && storeId ? ' · …' : ''}
+            </div>
           </div>
         </div>
 
-        {/* Tabs — all cashier roles */}
         <nav
           data-testid="pos-tab-bar"
           style={{
             display: 'flex',
             gap: 4,
-            backgroundColor: pos.headerBgAlt,
-            padding: 4,
-            borderRadius: pos.radius.md,
+            background: 'rgba(255,255,255,0.04)',
+            padding: 5,
+            borderRadius: 999,
+            border: `1px solid ${pos.border}`,
+            justifySelf: 'center',
           }}
           aria-label="POS sections"
         >
@@ -485,15 +547,17 @@ const POSDashboard: React.FC = () => {
               onClick={() => setActiveTab(tab.key)}
               style={{
                 ...posTouchBtnBase,
-                minHeight: 44,
-                padding: `${pos.space[2]} ${pos.space[4]}`,
-                borderRadius: pos.radius.sm,
-                fontSize: pos.type.fontSize.sm,
+                minHeight: 42,
+                minWidth: 96,
+                padding: '8px 16px',
+                borderRadius: 999,
+                fontSize: 13,
+                gap: 6,
                 ...(activeTab === tab.key
                   ? {
-                      background: pos.role,
-                      color: pos.inverse,
-                      boxShadow: `0 4px 12px ${pos.roleShadow}`,
+                      background: `linear-gradient(135deg, ${pos.role} 0%, ${pos.roleDark} 100%)`,
+                      color: '#ffffff',
+                      boxShadow: `0 4px 16px ${pos.roleShadow}`,
                     }
                   : {
                       background: 'transparent',
@@ -505,8 +569,9 @@ const POSDashboard: React.FC = () => {
               <span
                 style={{
                   fontSize: 10,
-                  opacity: 0.7,
-                  fontWeight: pos.type.fontWeight.medium,
+                  opacity: activeTab === tab.key ? 0.9 : 0.55,
+                  fontWeight: 600,
+                  fontFamily: pos.mono,
                 }}
               >
                 {tab.shortcut}
@@ -515,19 +580,30 @@ const POSDashboard: React.FC = () => {
           ))}
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: pos.space[3], flexWrap: 'wrap' }}>
-          {orderUser && (
+        {/* Right cluster: fixed min width so tabs stay centered across tabs */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 10,
+            flexWrap: 'wrap',
+            minHeight: 48,
+            minWidth: 0,
+          }}
+        >
+          {orderUser ? (
             <div
               data-testid="pos-order-user"
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: pos.space[2],
-                padding: `${pos.space[2]} ${pos.space[3]}`,
-                backgroundColor: pos.headerBgAlt,
-                borderRadius: pos.radius.md,
-                border: `2px solid ${pos.success}`,
-                minHeight: pos.touchMin,
+                gap: 10,
+                padding: '8px 14px',
+                background: 'rgba(16,185,129,0.12)',
+                borderRadius: 999,
+                border: `1px solid ${pos.success}66`,
+                minHeight: 44,
               }}
             >
               <div
@@ -541,71 +617,86 @@ const POSDashboard: React.FC = () => {
               <div>
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 9,
                     color: pos.headerMuted,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
+                    letterSpacing: '0.06em',
+                    fontWeight: 700,
                   }}
                 >
-                  Taking Order
+                  Serving
                 </div>
-                <div
-                  style={{
-                    fontSize: pos.type.fontSize.sm,
-                    color: pos.success,
-                    fontWeight: pos.type.fontWeight.bold,
-                  }}
-                >
+                <div style={{ fontSize: 13, color: pos.successDark, fontWeight: 800 }}>
                   {orderUser.name}
                 </div>
               </div>
             </div>
-          )}
-
-          {activeTab === 'orders' && orderItems.length > 0 && (
-            <div
-              data-testid="pos-cart-total"
+          ) : (
+            <button
+              type="button"
+              onClick={handleNewOrder}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: pos.space[2],
-                padding: `${pos.space[2]} ${pos.space[3]}`,
-                backgroundColor: pos.headerBgAlt,
-                borderRadius: pos.radius.md,
-                minHeight: pos.touchMin,
+                ...posTouchBtnPrimary,
+                minHeight: 44,
+                visibility: activeTab === 'orders' ? 'visible' : 'hidden',
+                pointerEvents: activeTab === 'orders' ? 'auto' : 'none',
               }}
             >
-              <span
-                style={{
-                  fontSize: 10,
-                  color: pos.headerMuted,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Cart
-              </span>
-              <span
-                style={{
-                  fontSize: pos.type.fontSize.lg,
-                  fontWeight: pos.type.fontWeight.extrabold,
-                  color: pos.success,
-                }}
-              >
-                {fmt(orderTotal)}
-              </span>
-            </div>
+              New order
+            </button>
           )}
 
+          <div
+            data-testid="pos-cart-total"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              padding: '6px 14px',
+              background:
+                activeTab === 'orders' && orderItems.length > 0
+                  ? pos.roleSoft
+                  : 'transparent',
+              border:
+                activeTab === 'orders' && orderItems.length > 0
+                  ? `1px solid ${pos.roleBorder}`
+                  : '1px solid transparent',
+              borderRadius: 14,
+              minHeight: 44,
+              minWidth: 88,
+              opacity: activeTab === 'orders' && orderItems.length > 0 ? 1 : 0,
+              pointerEvents: 'none',
+            }}
+            aria-hidden={!(activeTab === 'orders' && orderItems.length > 0)}
+          >
+            <span
+              style={{
+                fontSize: 9,
+                color: pos.headerMuted,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                fontWeight: 700,
+              }}
+            >
+              Total
+            </span>
+            <span style={{ fontSize: 18, fontWeight: 900, color: pos.role, lineHeight: 1.1 }}>
+              {fmt(orderTotal)}
+            </span>
+          </div>
+
           {isManager && (
-            <div style={{ display: 'flex', gap: pos.space[2] }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <button
                 type="button"
                 onClick={() => setClockInModalOpen(true)}
                 style={{
                   ...posTouchBtnBase,
-                  background: `linear-gradient(135deg, ${pos.success} 0%, ${pos.successDark} 100%)`,
-                  color: pos.inverse,
-                  boxShadow: `0 4px 12px ${pos.success}55`,
+                  borderRadius: 999,
+                  background: pos.successSoft,
+                  color: pos.successDark,
+                  border: `1px solid ${pos.success}`,
                 }}
               >
                 Clock In
@@ -616,11 +707,10 @@ const POSDashboard: React.FC = () => {
                 disabled={activeSessions.length === 0}
                 style={{
                   ...posTouchBtnBase,
-                  background:
-                    activeSessions.length === 0
-                      ? pos.faint
-                      : `linear-gradient(135deg, ${pos.error} 0%, ${pos.errorDark} 100%)`,
-                  color: pos.inverse,
+                  borderRadius: 999,
+                  background: activeSessions.length === 0 ? pos.surfaceElevated : pos.errorSoft,
+                  color: activeSessions.length === 0 ? pos.faint : pos.errorDark,
+                  border: `1px solid ${activeSessions.length === 0 ? pos.border : pos.error}`,
                   opacity: activeSessions.length === 0 ? 0.5 : 1,
                   cursor: activeSessions.length === 0 ? 'not-allowed' : 'pointer',
                 }}
@@ -632,15 +722,14 @@ const POSDashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* ORDERS — dense 3-column board */}
+      {/* ORDERS — landscape craft board: menu ~42% · cart ~28% · pay ~30% */}
       {activeTab === 'orders' && (
         <div
           data-testid="pos-orders-board"
           style={{
             flex: 1,
             overflow: 'hidden',
-            padding: pos.space[3],
-            backgroundColor: pos.surfaceBg,
+            padding: 14,
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
@@ -649,15 +738,15 @@ const POSDashboard: React.FC = () => {
           <div
             style={{
               display: 'flex',
-              gap: pos.space[3],
+              gap: 14,
               flex: 1,
               minHeight: 0,
             }}
           >
-            <div style={{ ...posPanelShell, flex: '5 1 0' }} data-testid="pos-menu-column">
+            <div style={{ ...posPanelShell, flex: '4.2 1 0' }} data-testid="pos-menu-column">
               <MenuPanel onAddItem={handleAddItem} />
             </div>
-            <div style={{ ...posPanelShell, flex: '3 1 0' }} data-testid="pos-cart-column">
+            <div style={{ ...posPanelShell, flex: '2.8 1 0' }} data-testid="pos-cart-column">
               <OrderPanel
                 items={orderItems}
                 onUpdateQuantity={handleUpdateQuantity}
@@ -725,6 +814,23 @@ const POSDashboard: React.FC = () => {
             </div>
           )}
 
+          {storeId && !marketReady && (
+            <div
+              data-testid="pos-reports-market-loading"
+              style={{
+                marginBottom: pos.space[4],
+                padding: pos.space[4],
+                borderRadius: pos.radius.md,
+                background: pos.infoSoft,
+                border: `1px solid ${pos.info}`,
+                color: pos.ink,
+                fontSize: 13,
+              }}
+            >
+              Loading store market (currency / country) before showing reports…
+            </div>
+          )}
+
           {storeId && (
             <>
               {todayError && (
@@ -750,7 +856,7 @@ const POSDashboard: React.FC = () => {
                     style={{
                       ...posTouchBtnBase,
                       background: pos.role,
-                      color: pos.inverse,
+                      color: '#ffffff',
                     }}
                   >
                     Retry
@@ -1077,7 +1183,7 @@ const POSDashboard: React.FC = () => {
                                   color: pos.role,
                                 }}
                               >
-                                {fmt(order.total || 0)}
+                                {fmtOrder(order.total || 0, order)}
                               </div>
                               {order.paymentStatus === 'PENDING' &&
                                 order.paymentMethod === 'CASH' && (
