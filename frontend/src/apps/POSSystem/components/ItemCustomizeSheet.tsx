@@ -123,7 +123,7 @@ const ItemCustomizeSheet: React.FC<ItemCustomizeSheetProps> = ({
           </button>
         </div>
 
-        <div style={{ padding: 20, display: 1 }}>
+        <div style={{ padding: 20 }}>
           <h2
             id="item-sheet-title"
             style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 800, color: pos.ink }}
