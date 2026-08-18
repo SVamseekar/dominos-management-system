@@ -248,6 +248,7 @@ const App: React.FC = () => {
                 <ChatWidget />
 
                 <CookieConsent />
+                <GoogleAnalytics />
               </div>
             </Router>
           </ErrorBoundary>
@@ -255,7 +256,6 @@ const App: React.FC = () => {
       </ThemeProvider>
       </ConnectionMonitorProvider>
     </Provider>
-      <GoogleAnalytics />
     </GoogleOAuthProvider>
   );
 };
